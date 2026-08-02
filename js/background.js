@@ -679,6 +679,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true; // Indicates async response
   }
+
+  if (message.type === "resetPool") {
+    // Re-read word lists and rebuild a fresh shuffled pool from index 0
+    loadWordBanks().then(() => {
+      rebuildPool();
+      persistQueryPool().then(() => {
+        sendResponse({ success: true });
+      });
+    });
+    return true; // Indicates async response
+  }
 });
 
 // Re-index the pool safely whenever word lists are edited in Settings
