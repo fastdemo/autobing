@@ -46,6 +46,7 @@ let config = {
     waitingBetweenSearchesFormMin: "#waitingBetweenSearchesFormMin",
     waitingBetweenSearchesFormMax: "#waitingBetweenSearchesFormMax",
     appVersion: "#appVersion",
+    themeToggle: "#themeToggle",
     progressBar: ".progress-bar",
   },
 };
