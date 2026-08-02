@@ -53,6 +53,7 @@ let config = {
     moodDescriptorsField: "#moodDescriptorsField",
     categoriesField: "#categoriesField",
     extraDetailsField: "#extraDetailsField",
+    settingsReset: "#settingsReset",
     progressBar: ".progress-bar",
   },
 };

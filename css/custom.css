@@ -477,6 +477,21 @@ h2 {
     box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 
+/* Inherits the exact primary action button design (matches the Start button) */
+.settings-reset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 16px;
+}
+
+.settings-reset-btn.reset-success {
+    background-color: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+
 /* ========================================
    FOOTER
    ======================================== */
@@ -762,4 +777,10 @@ body.dark-mode .settings-textarea:focus {
 
 body.dark-mode .settings-textarea::placeholder {
     color: #64748b;
+}
+
+body.dark-mode .settings-reset-btn.reset-success {
+    background-color: #14532d;
+    border-color: #166534;
+    color: #bbf7d0;
 }

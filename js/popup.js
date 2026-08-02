@@ -125,6 +125,16 @@ const WORD_BANK_FIELDS = [
 
 const wordBankSaveTimers = {};
 
+// Pristine baseline defaults (captured before loadPreferences mutates config)
+const DEFAULT_SEARCH_CONFIG = {
+  desktop: config.searches.desktop,
+  mobile: config.searches.mobile,
+  millisecondsMin: config.searches.millisecondsMin,
+  millisecondsMax: config.searches.millisecondsMax,
+};
+
+let resetFlashTimer = null;
+
 // Settings view
 $(config.domElements.settingsToggle).on("click", () => {
   if ($(config.domElements.settingsView).hasClass("open")) {
@@ -196,6 +206,68 @@ WORD_BANK_FIELDS.forEach(({ id, storageKey }) => {
     saveWordBankField(storageKey, id);
   });
 });
+
+// Restore factory settings: word banks, search counts, timers, theme, and pool
+$(config.domElements.settingsReset).on("click", async () => {
+  // Cancel any pending auto-saves so stale edits cannot overwrite the reset
+  Object.values(wordBankSaveTimers).forEach(clearTimeout);
+
+  await chrome.storage.local.set({
+    moodDescriptors: DEFAULT_WORD_BANKS.mood,
+    categories: DEFAULT_WORD_BANKS.category,
+    extraDetails: DEFAULT_WORD_BANKS.detail,
+    desktopSearches: DEFAULT_SEARCH_CONFIG.desktop,
+    mobileSearches: DEFAULT_SEARCH_CONFIG.mobile,
+    millisecondsMin: DEFAULT_SEARCH_CONFIG.millisecondsMin,
+    millisecondsMax: DEFAULT_SEARCH_CONFIG.millisecondsMax,
+  });
+  await chrome.storage.local.remove("darkMode");
+
+  // Rebuild the combination pool and reset its index in the background
+  chrome.runtime.sendMessage({ type: "resetPool" }, (response) => {
+    if (response && !response.success) {
+      console.error("Failed to reset query pool:", response?.error);
+    }
+  });
+
+  // Refresh the UI immediately
+  await loadWordBankFields();
+  $(config.domElements.totDesktopSearchesForm).val(
+    DEFAULT_SEARCH_CONFIG.desktop,
+  );
+  $(config.domElements.totMobileSearchesForm).val(
+    DEFAULT_SEARCH_CONFIG.mobile,
+  );
+  $(config.domElements.waitingBetweenSearchesFormMin).val(
+    DEFAULT_SEARCH_CONFIG.millisecondsMin,
+  );
+  $(config.domElements.waitingBetweenSearchesFormMax).val(
+    DEFAULT_SEARCH_CONFIG.millisecondsMax,
+  );
+  applyDarkMode(false);
+
+  flashResetFeedback();
+});
+
+// Temporary feedback so the user knows settings were restored
+function flashResetFeedback() {
+  const button = $(config.domElements.settingsReset);
+  clearTimeout(resetFlashTimer);
+  button.addClass("reset-success");
+  button.find(".reset-label").text("Reset!");
+  button
+    .find(".reset-icon")
+    .removeClass("fa-rotate-left")
+    .addClass("fa-check");
+  resetFlashTimer = setTimeout(() => {
+    button.removeClass("reset-success");
+    button.find(".reset-label").text("Restore Factory Settings");
+    button
+      .find(".reset-icon")
+      .removeClass("fa-check")
+      .addClass("fa-rotate-left");
+  }, 1600);
+}
 
 // Theme toggle
 $(config.domElements.themeToggle).on("click", () => {
