@@ -3,37 +3,16 @@
 
 Automating your Bing searches so you don't have to!
 
-## What It Does
+## What it does
 
-A simple Chrome extension that runs Bing searches for you. Set a search count, pick a delay range, hit Start, and let it do the work.
+Autobing is a Chrome extension that runs Bing searches for you. Set a search count and a timer range, hit Start, and let it do the work.
 
 ## Features
 
-### Automated Searches
-
-- Runs search batches automatically.
-- Random delays keep things looking natural.
-- A progress bar shows how far along the run is.
-
-### Smart Query Generator
-
-- Mixes words from 3 custom lists so searches look natural.
-- No repeats within the same session.
-
-### Settings
-
-- Edit your search word lists directly in the popup.
-- Changes auto-save and apply to the next run.
-
-### Fishing Redirect
-
-- Opens https://github.com/fastdemo automatically after the last search timer finishes.
-
-### Custom UI
-
-- Dark and light modes with custom colors.
-- Thin scrollbars that show on hover.
-- Custom footer animations, like the @fastdemo tag.
+- **Automated searches**: Runs search batches automatically with customizable timers.
+- **Smart query generator**: Randomly combines words from 3 lists so searches look natural and don't repeat.
+- **Word list settings**: Edit your search word banks directly in the popup with auto-save.
+- **Clean UI**: Light and dark modes with thin hover scrollbars and custom footer animations.
 
 ## Install
 
