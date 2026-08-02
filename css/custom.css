@@ -6,13 +6,13 @@
 
 :root {
     --font-stack: 'DM Sans', sans-serif;
-    --primary: #0f172a;
-    --primary-dark: #1e293b;
+    --primary: #1e293b;
+    --primary-dark: #334155;
     --danger: #dc2626;
     --danger-dark: #b91c1c;
-    --bg: #ffffff;
-    --bg-soft: #f8fafc;
-    --border: #e2e8f0;
+    --bg: #eef4fb;
+    --bg-soft: #f0f5fa;
+    --border: #cbd5e1;
     --text: #0f172a;
     --text-muted: #64748b;
     --disabled-bg: #e2e8f0;
@@ -31,6 +31,7 @@ body {
     overflow: hidden;
     margin: 0;
     padding: 14px 0 32px;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 *,
@@ -82,6 +83,12 @@ h2 {
 .header-icon {
     display: block;
     margin: 0;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+}
+
+.header-icon:hover {
+    transform: scale(1.12) rotate(-5deg);
 }
 
 .header-icon img {
@@ -102,6 +109,7 @@ h2 {
     letter-spacing: -0.02em;
     color: var(--text);
     margin: 0;
+    transition: color 0.25s ease;
 }
 
 .app-subtitle {
@@ -111,6 +119,7 @@ h2 {
     color: var(--text-muted);
     margin: 0;
     font-weight: 400;
+    transition: color 0.25s ease;
 }
 
 /* ========================================
@@ -225,6 +234,7 @@ h2 {
     display: flex;
     align-items: center;
     gap: 5px;
+    transition: color 0.25s ease;
 }
 
 .form-label i {
@@ -242,7 +252,8 @@ h2 {
     font-weight: 500;
     background: var(--bg);
     color: var(--text);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease,
+        background-color 0.25s ease, color 0.25s ease;
 }
 
 .form-control-sm:focus {
@@ -280,6 +291,7 @@ h2 {
     text-align: center;
     color: var(--text-muted);
     opacity: 0.6;
+    transition: color 0.25s ease;
 }
 
 /* ========================================
@@ -337,8 +349,8 @@ h2 {
    ======================================== */
 
 body.dark-mode {
-    background-color: #0f172a;
-    color: #e2e8f0;
+    background-color: #121826;
+    color: #f8fafc;
 }
 
 body.dark-mode .app-header .header-icon {
@@ -354,9 +366,9 @@ body.dark-mode .app-subtitle {
 }
 
 body.dark-mode .theme-toggle {
-    background-color: #1e293b;
+    background-color: #1f293d;
     border-color: #334155;
-    color: #e2e8f0;
+    color: #e0f2fe;
 }
 
 body.dark-mode .theme-toggle:hover {
@@ -369,29 +381,29 @@ body.dark-mode .form-label {
 }
 
 body.dark-mode .form-control-sm {
-    background-color: #1e293b;
+    background-color: #1f293d;
     border-color: #334155;
     color: #f8fafc;
 }
 
 body.dark-mode .form-control-sm:focus {
-    background-color: #1e293b;
-    border-color: #64748b;
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+    background-color: #1f293d;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
 }
 
 body.dark-mode .form-control-sm:disabled {
-    background-color: #0f172a;
-    border-color: #1e293b;
+    background-color: #121826;
+    border-color: #1f293d;
     color: #64748b;
 }
 
 body.dark-mode .progress-track {
-    background-color: #1e293b;
+    background-color: #1f293d;
 }
 
 body.dark-mode .progress-bar {
-    background-color: #e2e8f0;
+    background-color: #60a5fa;
 }
 
 body.dark-mode .app-footer {
@@ -406,22 +418,22 @@ body.dark-mode .btn-action,
 body.dark-mode .btn-desktop,
 body.dark-mode .btn-mobile,
 body.dark-mode .btn-both {
-    background-color: #f8fafc;
-    border-color: #f8fafc;
+    background-color: #e0f2fe;
+    border-color: #e0f2fe;
     color: #0f172a;
 }
 
 body.dark-mode .btn-action:hover {
-    background-color: #e2e8f0;
-    border-color: #e2e8f0;
+    background-color: #bae6fd;
+    border-color: #bae6fd;
     color: #0f172a;
 }
 
 body.dark-mode .btn-action:focus,
 body.dark-mode .btn-action:focus-visible,
 body.dark-mode .btn-action:active {
-    background-color: #f8fafc;
-    border-color: #f8fafc;
+    background-color: #e0f2fe;
+    border-color: #e0f2fe;
     color: #0f172a;
     box-shadow: none;
     outline: none;
