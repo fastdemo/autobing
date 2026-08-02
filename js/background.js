@@ -80,12 +80,6 @@ const config = {
       mobile: false,
     },
   },
-  general: {
-    authorWebsiteLinkThanks: [
-      "https://andreacorriga.com/rewards-search-automator/thanks",
-      "https://rawe-ceek.strifelab.com/",
-    ],
-  },
 };
 
 // State management - stored in memory, persisted for alarm callbacks
@@ -313,15 +307,6 @@ async function activeDesktopAgent(tabId) {
   });
 }
 
-// Open author website
-function openAuthorWebsite() {
-  const choice =
-    Math.random() < 0.7
-      ? config.general.authorWebsiteLinkThanks[0]
-      : config.general.authorWebsiteLinkThanks[1];
-  chrome.tabs.update(searchState.tabId, { url: choice });
-}
-
 // Perform a single search
 async function performSingleSearch() {
   if (!searchState.isRunning) return;
@@ -411,7 +396,6 @@ async function handlePhaseComplete() {
 // Complete all searches
 async function completeSearches() {
   searchState.isRunning = false;
-  openAuthorWebsite();
 
   notifyPopup({
     type: "complete",

@@ -113,7 +113,7 @@ async function startSearches(searchType) {
 }
 
 /**
- * Set links on bottom navbar and forms
+ * Set default UI values and load saved settings
  */
 function setDefaultUI() {
   // Set the app version number
@@ -137,21 +137,6 @@ function setDefaultUI() {
   );
   $(config.domElements.waitingBetweenSearchesFormMax).val(
     config.searches.millisecondsMax,
-  );
-
-  $(config.domElements.authorWebsiteLink).attr(
-    "href",
-    config.general.authorWebsiteLinkThanks[0],
-  );
-  $(config.domElements.repositoryGithubLink).attr(
-    "href",
-    config.general.repositoryGithubLink,
-  );
-  $(config.domElements.storeLink).attr("href", config.general.storeLink);
-  $(config.domElements.rewardsLink).attr("href", config.general.rewardsLink);
-  $(config.domElements.f1PromoLink).attr(
-    "href",
-    config.general.authorWebsiteLinkThanks[1],
   );
 }
 

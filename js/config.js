@@ -1,16 +1,6 @@
 let config = {
   general: {
-    appVersion: "v2.2.0",
-    authorWebsiteLink: "https://andreacorriga.com",
-    authorWebsiteLinkThanks: [
-      "https://andreacorriga.com/rewards-search-automator/thanks",
-      "https://rawe-ceek.strifelab.com/",
-    ],
-    repositoryGithubLink:
-      "https://github.com/AsoStrife/Rewards-Search-Automator",
-    storeLink:
-      "https://chromewebstore.google.com/detail/rewards-search-automator/paohfpjfibchbhbkdnlhjpfblafifehg?hl=it",
-    rewardsLink: "https://rewards.microsoft.com/",
+    appVersion: "v1.0.0",
   },
   bing: {
     url: "https://bing.com/search?q={q}&form={form}&cvid={cvid}",
@@ -58,11 +48,6 @@ let config = {
     waitingBetweenSearchesFormMin: "#waitingBetweenSearchesFormMin",
     waitingBetweenSearchesFormMax: "#waitingBetweenSearchesFormMax",
     appVersion: "#appVersion",
-    authorWebsiteLink: "#authorWebsiteLink",
-    repositoryGithubLink: "#repositoryGithubLink",
-    storeLink: "#storeLink",
-    rewardsLink: "#rewardsLink",
-    f1PromoLink: "#btn-f1-promo",
     progressBar: ".progress-bar",
   },
 };
