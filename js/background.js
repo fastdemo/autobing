@@ -1,55 +1,47 @@
-// Words list for searches
-const words = [
-  "Best coffee shops near me",
-  "How to learn coding online",
-  "Healthy dinner recipes quick",
-  "Top travel destinations 2023",
-  "Funny cat videos compilation",
-  "Learn to play guitar tutorial",
-  "Mindfulness meditation techniques",
-  "DIY home decor ideas",
-  "New sci-fi books 2023",
-  "Beginner workout routine at home",
-  "Photography tips for beginners",
-  "Interesting facts about space",
-  "Quick and easy dessert recipes",
-  "Upcoming movie releases",
-  "Popular podcast series 2023",
-  "Natural remedies for headaches",
-  "Online language learning platforms",
-  "Best budget-friendly gadgets",
-  "Funny jokes for a good laugh",
-  "Artificial intelligence basics",
-  "Vegan lunch ideas for work",
-  "Healthy habits for a happy life",
-  "DIY garden landscaping ideas",
-  "Learn to draw step by step",
-  "Effective time management tips",
-  "Motivational quotes for success",
-  "Popular mobile games 2023",
-  "How to start a blog",
-  "Mind-bending optical illusions",
-  "Home workout equipment reviews",
-  "Exciting weekend getaways",
-  "Delicious smoothie recipes",
-  "Introduction to astrophysics",
-  "Best educational YouTube channels",
-  "Cute puppy training tips",
-  "Interesting historical events",
-  "Top 10 TED talks of all time",
-  "DIY skincare routine at home",
-  "Unique and easy craft ideas",
-  "Mediterranean diet meal plan",
-  "Must-read classic novels",
-  "How to grow your own herbs",
-  "Virtual reality gaming experiences",
-  "Famous motivational speeches",
-  "Tips for better sleep quality",
-  "Healthy habits for busy professionals",
-  "Learn to play piano online",
-  "Delicious vegetarian dinner ideas",
-  "Exciting science experiments at home",
-  "Popular workout playlists 2023",
+// Word banks for dynamic query generation
+const MOOD_DESCRIPTORS = [
+  "best", "easy", "quick", "top rated", "simple", "healthy", "cheap",
+  "affordable", "popular", "trending", "creative", "essential", "ultimate",
+  "beginner", "minimalist", "cozy", "modern", "underrated", "budget",
+  "smart", "fun", "relaxing", "fast", "great", "cool", "unique", "useful",
+  "stylish", "practical", "classic", "clean", "fresh", "quiet", "compact",
+  "durable", "lightweight", "portable", "effective", "low cost",
+  "high quality", "aesthetic", "comforting", "peaceful", "energizing",
+  "tasty", "delicious", "productive", "inspiring", "clever", "handy",
+];
+
+const CATEGORIES = [
+  "coffee shops", "dinner recipes", "laptop reviews", "travel destinations",
+  "workout routines", "sci-fi movies", "houseplants", "home decor ideas",
+  "python tutorials", "meal prep plans", "indie games", "desk setups",
+  "ambient music", "sourdough recipes", "hiking trails",
+  "mechanical keyboards", "noise canceling headphones", "ergonomic chairs",
+  "air purifiers", "mirrorless cameras", "book recommendations",
+  "board games", "stretching routines", "podcasts", "breakfast ideas",
+  "street photography", "backpacks", "running shoes", "smart home devices",
+  "water bottles", "standing desks", "skin care routines",
+  "smoothie recipes", "productivity apps", "coding tools", "graphic novels",
+  "lo-fi beats", "tea varieties", "camping gear", "gardening tips",
+  "organizing hacks", "baking recipes", "snack ideas",
+  "time management techniques", "instrumental music", "wall art ideas",
+  "espresso machines", "wireless earbuds", "monitors for coding",
+  "bedside lamps",
+];
+
+const EXTRA_DETAILS = [
+  "near me", "for beginners", "on a budget", "step by step", "this week",
+  "for students", "at home", "ideas", "compared", "review", "guide",
+  "for small spaces", "from scratch", "for productivity",
+  "to play this weekend", "on streaming", "for remote work",
+  "for everyday use", "without hassle", "tips and tricks",
+  "for small apartments", "for studying", "for summer", "for winter",
+  "for long runs", "for travel", "under $50", "for college",
+  "for office use", "in 15 minutes", "for beginners 2026",
+  "with high rating", "for daily routine", "to try today", "for home gym",
+  "for night time", "for focus", "for weekend project", "free options",
+  "simple steps", "for busy days", "for relaxing", "creative list",
+  "top picks", "for beginners guide", "essential list", "budget friendly",
+  "quick setup", "for daily use", "high value",
 ];
 
 // Configuration
@@ -94,6 +86,7 @@ let searchState = {
   millisecondsMax: 10000,
   desktopSearches: 3,
   mobileSearches: 3,
+  usedQueries: new Set(),
 };
 
 const ALARM_NAME = "searchAlarm";
@@ -108,12 +101,49 @@ async function loadState() {
   const result = await chrome.storage.local.get("searchState");
   if (result.searchState) {
     searchState = result.searchState;
+    // usedQueries is a Set in memory but serializes as {} through storage
+    if (!(searchState.usedQueries instanceof Set)) {
+      searchState.usedQueries = new Set(
+        Array.isArray(searchState.usedQueries)
+          ? searchState.usedQueries
+          : [],
+      );
+    }
   }
 }
 
 // Helper functions
-function getRandomSearchWord() {
-  return words[Math.floor(Math.random() * words.length)];
+function pickRandom(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+// Build a dynamic search query from random word bank combinations
+function generateDynamicQuery() {
+  const template = Math.floor(Math.random() * 4);
+  const mood = pickRandom(MOOD_DESCRIPTORS);
+  const category = pickRandom(CATEGORIES);
+  const detail = pickRandom(EXTRA_DETAILS);
+
+  switch (template) {
+    case 0:
+      return `${mood} ${category} ${detail}`;
+    case 1:
+      return `${mood} ${category}`;
+    case 2:
+      return `${category} ${detail}`;
+    default:
+      return `how to find ${mood} ${category}`;
+  }
+}
+
+// Get a query that has not been used in the current session
+function getUniqueQuery() {
+  let query = generateDynamicQuery();
+  while (searchState.usedQueries.has(query)) {
+    query = generateDynamicQuery();
+  }
+  searchState.usedQueries.add(query);
+  return query;
 }
 
 function randomDelay() {
@@ -312,7 +342,7 @@ async function performSingleSearch() {
   if (!searchState.isRunning) return;
 
   const searchUrl = config.bing.url
-    .replace("{q}", encodeURIComponent(getRandomSearchWord()))
+    .replace("{q}", encodeURIComponent(getUniqueQuery()))
     .replace("{form}", config.bing.form)
     .replace("{cvid}", "");
 
@@ -410,6 +440,7 @@ async function completeSearches() {
     tabId: null,
     searchType: null,
     phase: null,
+    usedQueries: new Set(),
   };
 
   // Clear alarm and saved state
@@ -443,6 +474,7 @@ async function stopSearches() {
     tabId: null,
     searchType: null,
     phase: null,
+    usedQueries: new Set(),
   };
 
   // Clear alarm and saved state
@@ -470,6 +502,7 @@ async function startSearches(type, settings) {
     millisecondsMax: settings.millisecondsMax,
     desktopSearches: settings.desktopSearches,
     mobileSearches: settings.mobileSearches,
+    usedQueries: new Set(),
   };
 
   // Initialize mobile mode if needed
