@@ -41,8 +41,6 @@ let config = {
     desktopButton: "#desktopButton",
     mobileButton: "#mobileButton",
     desktopMobileButton: "#desktopMobileButton",
-    stopButton: "#stopButton",
-    stopButtonContainer: "#stopButtonContainer",
     totDesktopSearchesForm: "#totDesktopSearchesForm",
     totMobileSearchesForm: "#totMobileSearchesForm",
     waitingBetweenSearchesFormMin: "#waitingBetweenSearchesFormMin",

@@ -17,25 +17,25 @@
             <i class="fa-solid fa-trophy"></i>
         </div>
         <h1 class="app-title">Autobing</h1>
-        <p class="app-subtitle">Automated Bing searches</p>
+        <p class="app-subtitle">Automating your searches.</p>
     </div>
 
     <div class="container-fluid px-3">
         <!-- Action Buttons -->
         <div class="row g-2 mb-2">
-            <div class="col-4">
+            <div class="col-4" id="desktopButtonCol">
                 <button type="button" class="btn btn-action btn-desktop w-100" id="desktopButton">
-                    <i class="fa-solid fa-desktop"></i>
-                    <span>Desktop</span>
+                    <i class="fa-solid fa-play"></i>
+                    <span>Start</span>
                 </button>
             </div>
-            <div class="col-4">
+            <div class="col-4" id="mobileButtonCol">
                 <button type="button" class="btn btn-action btn-mobile w-100" id="mobileButton">
                     <i class="fa-solid fa-mobile-screen"></i>
                     <span>Mobile</span>
                 </button>
             </div>
-            <div class="col-4">
+            <div class="col-4" id="desktopMobileButtonCol">
                 <button type="button" class="btn btn-action btn-both w-100" id="desktopMobileButton">
                     <i class="fa-solid fa-layer-group"></i>
                     <span>Both</span>
@@ -43,38 +43,26 @@
             </div>
         </div>
 
-        <!-- Stop Button (hidden by default) -->
-        <div class="row g-2 mb-2" id="stopButtonContainer" style="display: none;">
-            <div class="col-12">
-                <button type="button" class="btn btn-danger w-100" id="stopButton">
-                    <i class="fa-solid fa-stop"></i>
-                    <span>Stop Searches</span>
-                </button>
-            </div>
-        </div>
-
         <!-- Progress Bar -->
         <div class="row mb-2">
             <div class="col-12">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar"
-                        aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-                    </div>
+                <div class="progress-track">
+                    <div class="progress-bar" style="width: 0%"></div>
                 </div>
             </div>
         </div>
 
         <!-- Settings Form -->
         <div class="row g-2 mb-2">
-            <div class="col-6">
-                <label class="form-label">
-                    <i class="fa-solid fa-desktop"></i> Desktop
+            <div class="col-6" id="desktopSearchesCol">
+                <label class="form-label" for="totDesktopSearchesForm">
+                    <i class="fa-solid fa-magnifying-glass"></i> Searches
                 </label>
                 <input type="number" class="form-control form-control-sm" 
                     id="totDesktopSearchesForm" min="1" value="">
             </div>
-            <div class="col-6">
-                <label class="form-label">
+            <div class="col-6" id="mobileSearchesCol">
+                <label class="form-label" for="totMobileSearchesForm">
                     <i class="fa-solid fa-mobile-screen"></i> Mobile
                 </label>
                 <input type="number" class="form-control form-control-sm" 
@@ -84,14 +72,14 @@
 
         <div class="row g-2">
             <div class="col-6">
-                <label class="form-label">
+                <label class="form-label" for="waitingBetweenSearchesFormMin">
                     <i class="fa-solid fa-hourglass-start"></i> Min (ms)
                 </label>
                 <input type="number" class="form-control form-control-sm"
                     id="waitingBetweenSearchesFormMin" min="100" value="">
             </div>
             <div class="col-6">
-                <label class="form-label">
+                <label class="form-label" for="waitingBetweenSearchesFormMax">
                     <i class="fa-solid fa-hourglass-end"></i> Max (ms)
                 </label>
                 <input type="number" class="form-control form-control-sm"
