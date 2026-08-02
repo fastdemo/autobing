@@ -5,40 +5,38 @@ Automating your Bing searches so you don't have to!
 
 ## What It Does
 
-Autobing is a polished Chrome extension that runs natural, human-like Bing searches for you. Set a search count, pick a delay range, hit Start, and let the extension handle the rest while you go about your day.
+Autobing is a simple Chrome extension that runs Bing searches for you. Set a search count, pick a delay range, hit Start, and let it do the work.
 
 ## Features
 
-### Automated Search Workflows
+### Automated Searches
 
-- Runs a configurable number of desktop searches per session.
-- Random delays between searches keep the rhythm natural and varied.
-- Live progress bar tracks each run from start to finish.
-- Runs continue even when the popup is closed.
+- Runs search batches for you, quickly and hands-free.
+- Random delays between searches keep things looking natural.
+- A progress bar shows how far along the run is.
 
-### Dynamic Query Building
+### Smart Query Generator
 
-- Queries are constructed from a smart 3-part template: **Mood Descriptors**, **Categories**, and **Extra Details**.
-- Words combine at random to build natural, human-like phrases such as "best coffee shops near me".
-- Strict session deduplication guarantees no query is ever repeated during an active run.
+- Builds queries from 3 word lists: Moods, Categories, and Details.
+- Mixes them together for natural searches like "best coffee shops near me".
+- Never repeats the same search twice in one session.
 
 ### Customizable Word Banks
 
-- An inline **Settings** panel lets you view and edit all three word banks.
-- Each bank ships with 50 curated default phrases, ready to use out of the box.
-- Edits auto-save in real time to `chrome.storage.local` and apply to the very next run.
+- Open Settings to edit your word lists anytime.
+- Each list starts with 50 handy default phrases.
+- Changes auto-save, so the next run picks up your words right away.
 
-### Automated GitHub Redirect
+### Finishing Redirect
 
-- When the final search delay finishes completely, Autobing opens your GitHub profile automatically.
-- The redirect fires exactly once per run and never triggers on a manual stop.
+- Opens https://github.com/fastdemo automatically after the last search countdown finishes.
+- Fires once per run and never on a manual stop.
 
-### Theme Integration
+### Custom UI & Themes
 
-- Dual **Dark** and **Light** modes with a custom Shion Yorigami-inspired palette.
-- Smooth animated hover states on the header icon and title.
-- Ultra-thin, hover-only scrollbars that appear only when you need them.
-- An animated footer with a hover-reveal version tag.
+- Dark and light modes with custom colors.
+- Thin hover-only scrollbars that show up only when needed.
+- Interactive footer elements like the @fastdemo tag.
 
 ## Install
 
@@ -49,17 +47,17 @@ Autobing is a polished Chrome extension that runs natural, human-like Bing searc
    ```
 
 2. Open `chrome://extensions/`.
-3. Turn on **Developer mode**.
-4. Click **Load unpacked**.
+3. Turn on Developer mode.
+4. Click Load unpacked.
 5. Select the extension folder.
 
 ## Usage
 
 1. Click the Autobing icon in the toolbar.
-2. Set how many searches you want to run.
+2. Set how many searches to run.
 3. Set the min and max delay in milliseconds.
-4. Click **Start**.
-5. Open the Settings panel (gear icon) anytime to customize the word banks.
+4. Click Start.
+5. Use the gear icon to edit word lists in Settings.
 
 ## License
 
