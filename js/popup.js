@@ -2,6 +2,8 @@ import config from "./config.js";
 
 chrome.runtime.connect({ name: "popup" });
 
+let isRunning = false;
+
 // Progressbar object
 var progressBar = document.querySelector(config.domElements.progressBar);
 
@@ -24,14 +26,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Check if searches are already running when popup opens
-async function checkRunningState() {
+function checkRunningState() {
   chrome.runtime.sendMessage({ type: "getState" }, (response) => {
     if (response && response.isRunning) {
       deactivateForms();
-      const progress = parseInt(
-        (response.currentSearch / response.totalSearches) * 100,
-      );
-      setProgress(progress);
     }
   });
 }
@@ -60,28 +58,27 @@ $(config.domElements.waitingBetweenSearchesFormMax).on("change", function () {
   localStorage.setItem("millisecondsMax", config.searches.millisecondsMax);
 });
 
-// Start search desktop
+// Start or stop searches
 $(config.domElements.desktopButton).on("click", async () => {
-  startSearches("desktop");
+  if (isRunning) {
+    chrome.runtime.sendMessage({ type: "stopSearches" }, (response) => {
+      if (response && response.success) {
+        console.log("Searches stopped successfully");
+      }
+    });
+  } else {
+    startSearches("desktop");
+  }
 });
 
-// Start search mobile
+// Start search mobile (hidden UI)
 $(config.domElements.mobileButton).on("click", async () => {
   startSearches("mobile");
 });
 
-// Start search desktop&mobile
+// Start search desktop&mobile (hidden UI)
 $(config.domElements.desktopMobileButton).on("click", async () => {
   startSearches("desktopMobile");
-});
-
-// Stop searches
-$(config.domElements.stopButton).on("click", async () => {
-  chrome.runtime.sendMessage({ type: "stopSearches" }, (response) => {
-    if (response && response.success) {
-      console.log("Searches stopped successfully");
-    }
-  });
 });
 
 /**
@@ -141,40 +138,35 @@ function setDefaultUI() {
 }
 
 /**
- * Deactivate Make search button
- * and Number of Search form
+ * Switch the action button to "Stop Searches" mode
  */
 function deactivateForms() {
-  $(config.domElements.desktopButton).prop("disabled", true).hide();
-  $(config.domElements.mobileButton).prop("disabled", true).hide();
-  $(config.domElements.desktopMobileButton).prop("disabled", true).hide();
-  $(config.domElements.totDesktopSearchesForm).prop("disabled", true);
-  $(config.domElements.totMobileSearchesForm).prop("disabled", true);
-  $(config.domElements.waitingBetweenSearchesFormMin).prop("disabled", true);
-  $(config.domElements.waitingBetweenSearchesFormMax).prop("disabled", true);
-  $(config.domElements.stopButtonContainer).show();
+  isRunning = true;
+  $(config.domElements.desktopButton).addClass("btn-stop");
+  $(config.domElements.desktopButton)
+    .find("i")
+    .removeClass("fa-play")
+    .addClass("fa-stop");
+  $(config.domElements.desktopButton).find("span").text("Stop Searches");
 }
 
 /**
- * Activate Make search button
- * and Number of Search form
+ * Switch the action button back to "Start" mode
  */
 function activateForms() {
-  $(config.domElements.desktopButton).prop("disabled", false).show();
-  $(config.domElements.mobileButton).prop("disabled", false).show();
-  $(config.domElements.desktopMobileButton).prop("disabled", false).show();
-  $(config.domElements.totDesktopSearchesForm).prop("disabled", false);
-  $(config.domElements.totMobileSearchesForm).prop("disabled", false);
-  $(config.domElements.waitingBetweenSearchesFormMin).prop("disabled", false);
-  $(config.domElements.waitingBetweenSearchesFormMax).prop("disabled", false);
-  $(config.domElements.stopButtonContainer).hide();
+  isRunning = false;
+  $(config.domElements.desktopButton).removeClass("btn-stop");
+  $(config.domElements.desktopButton)
+    .find("i")
+    .removeClass("fa-stop")
+    .addClass("fa-play");
+  $(config.domElements.desktopButton).find("span").text("Start");
 }
 
 /**
- * Update progressbar value
+ * Update the progress bar fill width
  * @param {*} value
  */
 function setProgress(value) {
   progressBar.style.width = value + "%";
-  progressBar.innerText = value + "%";
 }
