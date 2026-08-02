@@ -5,42 +5,39 @@ Automating your Bing searches so you don't have to!
 
 ## What It Does
 
-Autobing is a simple Chrome extension that runs Bing searches for you. Set a search count, pick a delay range, hit Start, and let it do the work.
+A simple Chrome extension that runs Bing searches for you. Set a search count, pick a delay range, hit Start, and let it do the work.
 
 ## Features
 
 ### Automated Searches
 
-- Runs search batches for you, quickly and hands-free.
-- Random delays between searches keep things looking natural.
+- Runs search batches automatically.
+- Random delays keep things looking natural.
 - A progress bar shows how far along the run is.
 
 ### Smart Query Generator
 
-- Builds queries from 3 word lists: Moods, Categories, and Details.
-- Mixes them together for natural searches like "best coffee shops near me".
-- Never repeats the same search twice in one session.
+- Mixes words from 3 custom lists so searches look natural.
+- No repeats within the same session.
 
-### Customizable Word Banks
+### Settings
 
-- Open Settings to edit your word lists anytime.
-- Each list starts with 50 handy default phrases.
-- Changes auto-save, so the next run picks up your words right away.
+- Edit your search word lists directly in the popup.
+- Changes auto-save and apply to the next run.
 
-### Finishing Redirect
+### Fishing Redirect
 
-- Opens https://github.com/fastdemo automatically after the last search countdown finishes.
-- Fires once per run and never on a manual stop.
+- Opens https://github.com/fastdemo automatically after the last search timer finishes.
 
-### Custom UI & Themes
+### Custom UI
 
 - Dark and light modes with custom colors.
-- Thin hover-only scrollbars that show up only when needed.
-- Interactive footer elements like the @fastdemo tag.
+- Thin scrollbars that show on hover.
+- Custom footer animations, like the @fastdemo tag.
 
 ## Install
 
-1. Download or clone this repo:
+1. Clone the repo:
 
    ```bash
    git clone https://github.com/fastdemo/autobing.git
