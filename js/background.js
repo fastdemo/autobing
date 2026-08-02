@@ -44,6 +44,32 @@ const EXTRA_DETAILS = [
   "quick setup", "for daily use", "high value",
 ];
 
+// Runtime word banks - loaded from chrome.storage.local, fall back to the
+// preset arrays above when storage is empty or invalid
+let wordBanks = {
+  mood: MOOD_DESCRIPTORS,
+  category: CATEGORIES,
+  detail: EXTRA_DETAILS,
+};
+
+// Load user-customized word banks from chrome.storage.local
+async function loadWordBanks() {
+  const result = await chrome.storage.local.get([
+    "moodDescriptors",
+    "categories",
+    "extraDetails",
+  ]);
+  wordBanks = {
+    mood: normalizeWordBank(result.moodDescriptors, MOOD_DESCRIPTORS),
+    category: normalizeWordBank(result.categories, CATEGORIES),
+    detail: normalizeWordBank(result.extraDetails, EXTRA_DETAILS),
+  };
+}
+
+function normalizeWordBank(stored, fallback) {
+  return Array.isArray(stored) && stored.length > 0 ? stored : fallback;
+}
+
 // Configuration
 const config = {
   bing: {
@@ -121,9 +147,9 @@ function pickRandom(array) {
 // Build a dynamic search query from random word bank combinations
 function generateDynamicQuery() {
   const template = Math.floor(Math.random() * 4);
-  const mood = pickRandom(MOOD_DESCRIPTORS);
-  const category = pickRandom(CATEGORIES);
-  const detail = pickRandom(EXTRA_DETAILS);
+  const mood = pickRandom(wordBanks.mood);
+  const category = pickRandom(wordBanks.category);
+  const detail = pickRandom(wordBanks.detail);
 
   switch (template) {
     case 0:
@@ -341,6 +367,9 @@ async function activeDesktopAgent(tabId) {
 // Perform a single search
 async function performSingleSearch() {
   if (!searchState.isRunning) return;
+
+  // Refresh word banks so customizations apply to the current run
+  await loadWordBanks();
 
   const searchUrl = config.bing.url
     .replace("{q}", encodeURIComponent(getUniqueQuery()))

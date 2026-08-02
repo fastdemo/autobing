@@ -95,6 +95,32 @@
 
     </div>
 
+    <!-- Settings View -->
+    <div class="settings-view" id="settingsView" aria-hidden="true">
+        <div class="settings-header">
+            <button type="button" class="settings-back" id="settingsBack" aria-label="Back to dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                <span>Back</span>
+            </button>
+            <span class="settings-title">Settings</span>
+        </div>
+        <div class="settings-content">
+            <div class="settings-description">
+                <h2 class="settings-subheader"><i class="fa-solid fa-magnifying-glass"></i> Search Queries</h2>
+                <p class="settings-desc">Edit the words used to make random searches. Words mix automatically to keep searches unique and safe from repeats.</p>
+            </div>
+
+            <label class="form-label settings-label" for="moodDescriptorsField"><i class="fa-solid fa-face-smile"></i> Descriptors</label>
+            <textarea class="settings-textarea" id="moodDescriptorsField" rows="3" spellcheck="false" placeholder="best, easy, quick, ..."></textarea>
+
+            <label class="form-label settings-label" for="categoriesField"><i class="fa-solid fa-tags"></i> Categories</label>
+            <textarea class="settings-textarea" id="categoriesField" rows="3" spellcheck="false" placeholder="coffee shops, dinner recipes, ..."></textarea>
+
+            <label class="form-label settings-label" for="extraDetailsField"><i class="fa-solid fa-circle-info"></i> Extras</label>
+            <textarea class="settings-textarea" id="extraDetailsField" rows="3" spellcheck="false" placeholder="near me, for beginners, ..."></textarea>
+        </div>
+    </div>
+
     <!-- Footer -->
     <nav class="navbar navbar-expand fixed-bottom app-footer">
         <div class="container-fluid">

@@ -47,6 +47,12 @@ let config = {
     waitingBetweenSearchesFormMax: "#waitingBetweenSearchesFormMax",
     appVersion: "#appVersion",
     themeToggle: "#themeToggle",
+    settingsToggle: "#settingsToggle",
+    settingsBack: "#settingsBack",
+    settingsView: "#settingsView",
+    moodDescriptorsField: "#moodDescriptorsField",
+    categoriesField: "#categoriesField",
+    extraDetailsField: "#extraDetailsField",
     progressBar: ".progress-bar",
   },
 };
