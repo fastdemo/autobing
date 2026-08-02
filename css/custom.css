@@ -168,8 +168,6 @@ h2 {
 
 .app-title:hover {
     transform: scale(1.03);
-    color: #35476e;
-    text-shadow: 0 0 6px rgba(44, 59, 89, 0.2);
 }
 
 .app-subtitle {
@@ -499,8 +497,52 @@ h2 {
     font-weight: 600;
     text-align: center;
     color: var(--text-muted);
-    opacity: 0.6;
     transition: color 0.25s ease;
+}
+
+/* ========================================
+   VERSION TAG (slide-reveal on hover)
+   ======================================== */
+
+.version-tag {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    height: 1.2em;
+    line-height: 1.2em;
+    font-weight: 600;
+}
+
+.version-tag .text-default,
+.version-tag .text-hover {
+    display: block;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+.version-tag .text-default {
+    transform: translateY(0%);
+    opacity: 1;
+}
+
+.version-tag .text-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+/* Hover state: slide @fastdemo up and bring v1.0.0 into view */
+.version-tag:hover .text-default {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.version-tag:hover .text-hover {
+    transform: translateY(0%);
+    opacity: 1;
 }
 
 /* ========================================
@@ -568,11 +610,6 @@ body.dark-mode .app-header .header-icon {
 
 body.dark-mode .app-title {
     color: #f8fafc;
-}
-
-body.dark-mode .app-title:hover {
-    color: #9fb4d6;
-    text-shadow: 0 0 8px rgba(143, 164, 196, 0.35);
 }
 
 body.dark-mode .app-subtitle {
