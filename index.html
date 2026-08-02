@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Autobing</title>
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/fa-all.min.css" rel="stylesheet">
+    <link href="./css/custom.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="app-header text-center">
+        <div class="header-icon">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h1 class="app-title">Autobing</h1>
+        <p class="app-subtitle">Automated Bing searches</p>
+    </div>
+
+    <div class="container-fluid px-3">
+        <!-- Action Buttons -->
+        <div class="row g-2 mb-2">
+            <div class="col-4">
+                <button type="button" class="btn btn-action btn-desktop w-100" id="desktopButton">
+                    <i class="fa-solid fa-desktop"></i>
+                    <span>Desktop</span>
+                </button>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-action btn-mobile w-100" id="mobileButton">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                    <span>Mobile</span>
+                </button>
+            </div>
+            <div class="col-4">
+                <button type="button" class="btn btn-action btn-both w-100" id="desktopMobileButton">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Both</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stop Button (hidden by default) -->
+        <div class="row g-2 mb-2" id="stopButtonContainer" style="display: none;">
+            <div class="col-12">
+                <button type="button" class="btn btn-danger w-100" id="stopButton">
+                    <i class="fa-solid fa-stop"></i>
+                    <span>Stop Searches</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="row mb-2">
+            <div class="col-12">
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar"
+                        aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Form -->
+        <div class="row g-2 mb-2">
+            <div class="col-6">
+                <label class="form-label">
+                    <i class="fa-solid fa-desktop"></i> Desktop
+                </label>
+                <input type="number" class="form-control form-control-sm" 
+                    id="totDesktopSearchesForm" min="1" value="">
+            </div>
+            <div class="col-6">
+                <label class="form-label">
+                    <i class="fa-solid fa-mobile-screen"></i> Mobile
+                </label>
+                <input type="number" class="form-control form-control-sm" 
+                    id="totMobileSearchesForm" min="1" value="">
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <div class="col-6">
+                <label class="form-label">
+                    <i class="fa-solid fa-hourglass-start"></i> Min (ms)
+                </label>
+                <input type="number" class="form-control form-control-sm"
+                    id="waitingBetweenSearchesFormMin" min="100" value="">
+            </div>
+            <div class="col-6">
+                <label class="form-label">
+                    <i class="fa-solid fa-hourglass-end"></i> Max (ms)
+                </label>
+                <input type="number" class="form-control form-control-sm"
+                    id="waitingBetweenSearchesFormMax" min="100" value="">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <nav class="navbar navbar-expand fixed-bottom app-footer">
+        <div class="container-fluid">
+            <span class="footer-version" id="appVersion"></span>
+        </div>
+    </nav>
+
+    <script src="./js/jquery-3.6.0.min.js"></script>
+    <script src="./js/fa-all.min.js"></script>
+    <script type="module" src="./js/popup.js"></script>
+</body>
+
+</html>
