@@ -2,7 +2,7 @@
 
 # Autobing
 
-Automating your Bing searches so you don't have to! (@fastdemo)
+Automating your Bing searches so you don't have to!
 
 ## What it does
 
