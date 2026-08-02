@@ -22,15 +22,15 @@ body {
     width: 290px;
     min-width: 290px;
     max-width: 290px;
-    height: 332px;
-    min-height: 332px;
-    max-height: 332px;
+    height: 360px;
+    min-height: 360px;
+    max-height: 360px;
     font-family: var(--font-stack);
     background: var(--bg);
     color: var(--text);
     overflow: hidden;
     margin: 0;
-    padding: 10px 0 32px;
+    padding: 14px 0 32px;
 }
 
 *,
@@ -58,20 +58,28 @@ h2 {
     overflow: hidden;
 }
 
+.container-fluid .row {
+    margin-bottom: 10px;
+}
+
+.container-fluid .row:last-child {
+    margin-bottom: 0;
+}
+
 /* ========================================
    HEADER
    ======================================== */
 
 .app-header {
     text-align: center;
-    padding: 0 0 8px 0;
+    padding: 0 0 14px 0;
 }
 
 .header-icon {
-    font-size: 20px;
+    font-size: 24px;
     line-height: 1;
     color: var(--primary);
-    margin-bottom: 5px;
+    margin-bottom: 12px;
 }
 
 .app-title {
@@ -80,7 +88,7 @@ h2 {
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text);
-    margin: 0 0 2px;
+    margin: 0 0 4px;
 }
 
 .app-subtitle {
