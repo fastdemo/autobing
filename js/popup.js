@@ -8,6 +8,7 @@ let isRunning = false;
 var progressBar = document.querySelector(config.domElements.progressBar);
 
 setDefaultUI();
+loadPreferences();
 checkRunningState();
 
 // Listen for messages from background script
@@ -35,27 +36,34 @@ function checkRunningState() {
 }
 
 $(config.domElements.totDesktopSearchesForm).on("change", function () {
-  config.searches.desktop = $(config.domElements.totDesktopSearchesForm).val();
-  localStorage.setItem("desktopSearches", config.searches.desktop);
+  const value = $(config.domElements.totDesktopSearchesForm).val();
+  config.searches.desktop = value;
+  chrome.storage.local.set({ desktopSearches: value });
 });
 
 $(config.domElements.totMobileSearchesForm).on("change", function () {
-  config.searches.mobile = $(config.domElements.totMobileSearchesForm).val();
-  localStorage.setItem("mobileSearches", config.searches.mobile);
+  const value = $(config.domElements.totMobileSearchesForm).val();
+  config.searches.mobile = value;
+  chrome.storage.local.set({ mobileSearches: value });
 });
 
 $(config.domElements.waitingBetweenSearchesFormMin).on("change", function () {
-  config.searches.millisecondsMin = $(
-    config.domElements.waitingBetweenSearchesFormMin,
-  ).val();
-  localStorage.setItem("millisecondsMin", config.searches.millisecondsMin);
+  const value = $(config.domElements.waitingBetweenSearchesFormMin).val();
+  config.searches.millisecondsMin = value;
+  chrome.storage.local.set({ millisecondsMin: value });
 });
 
 $(config.domElements.waitingBetweenSearchesFormMax).on("change", function () {
-  config.searches.millisecondsMax = $(
-    config.domElements.waitingBetweenSearchesFormMax,
-  ).val();
-  localStorage.setItem("millisecondsMax", config.searches.millisecondsMax);
+  const value = $(config.domElements.waitingBetweenSearchesFormMax).val();
+  config.searches.millisecondsMax = value;
+  chrome.storage.local.set({ millisecondsMax: value });
+});
+
+// Theme toggle
+$(config.domElements.themeToggle).on("click", () => {
+  const enabled = !document.body.classList.contains("dark-mode");
+  applyDarkMode(enabled);
+  chrome.storage.local.set({ darkMode: enabled });
 });
 
 // Start or stop searches
@@ -110,23 +118,13 @@ async function startSearches(searchType) {
 }
 
 /**
- * Set default UI values and load saved settings
+ * Set default UI values
  */
 function setDefaultUI() {
   // Set the app version number
   $(config.domElements.appVersion).html(config.general.appVersion);
 
-  // Load saved values from localStorage or use defaults
-  config.searches.desktop =
-    localStorage.getItem("desktopSearches") || config.searches.desktop;
-  config.searches.mobile =
-    localStorage.getItem("mobileSearches") || config.searches.mobile;
-  config.searches.millisecondsMin =
-    localStorage.getItem("millisecondsMin") || config.searches.millisecondsMin;
-  config.searches.millisecondsMax =
-    localStorage.getItem("millisecondsMax") || config.searches.millisecondsMax;
-
-  // Set numberOfSearches default values inside the input
+  // Set default input values
   $(config.domElements.totDesktopSearchesForm).val(config.searches.desktop);
   $(config.domElements.totMobileSearchesForm).val(config.searches.mobile);
   $(config.domElements.waitingBetweenSearchesFormMin).val(
@@ -135,6 +133,48 @@ function setDefaultUI() {
   $(config.domElements.waitingBetweenSearchesFormMax).val(
     config.searches.millisecondsMax,
   );
+}
+
+/**
+ * Load saved preferences from chrome storage
+ */
+async function loadPreferences() {
+  const result = await chrome.storage.local.get([
+    "desktopSearches",
+    "mobileSearches",
+    "millisecondsMin",
+    "millisecondsMax",
+    "darkMode",
+  ]);
+
+  config.searches.desktop =
+    result.desktopSearches ?? config.searches.desktop;
+  config.searches.mobile = result.mobileSearches ?? config.searches.mobile;
+  config.searches.millisecondsMin =
+    result.millisecondsMin ?? config.searches.millisecondsMin;
+  config.searches.millisecondsMax =
+    result.millisecondsMax ?? config.searches.millisecondsMax;
+
+  $(config.domElements.totDesktopSearchesForm).val(config.searches.desktop);
+  $(config.domElements.totMobileSearchesForm).val(config.searches.mobile);
+  $(config.domElements.waitingBetweenSearchesFormMin).val(
+    config.searches.millisecondsMin,
+  );
+  $(config.domElements.waitingBetweenSearchesFormMax).val(
+    config.searches.millisecondsMax,
+  );
+
+  applyDarkMode(result.darkMode === true);
+}
+
+/**
+ * Apply or remove dark mode
+ * @param {boolean} enabled
+ */
+function applyDarkMode(enabled) {
+  document.body.classList.toggle("dark-mode", enabled);
+  $(config.domElements.themeToggle).find(".icon-moon").toggle(!enabled);
+  $(config.domElements.themeToggle).find(".icon-sun").toggle(enabled);
 }
 
 /**

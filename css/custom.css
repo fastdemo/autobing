@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
 /* ========================================
    PREMIUM MINIMAL UI - Autobing
    ======================================== */
 
 :root {
-    --font-stack: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-stack: 'DM Sans', sans-serif;
     --primary: #0f172a;
     --primary-dark: #1e293b;
     --danger: #dc2626;
@@ -20,24 +22,36 @@ body {
     width: 290px;
     min-width: 290px;
     max-width: 290px;
-    height: 320px;
-    min-height: 320px;
-    max-height: 320px;
+    height: 332px;
+    min-height: 332px;
+    max-height: 332px;
     font-family: var(--font-stack);
     background: var(--bg);
     color: var(--text);
     overflow: hidden;
     margin: 0;
-    padding: 14px 0 44px;
+    padding: 10px 0 32px;
 }
 
+*,
 body,
 button,
 input,
+label,
 .btn,
 .form-control,
-.navbar {
-    font-family: var(--font-stack);
+.navbar,
+.app-title,
+.app-subtitle,
+.form-label,
+.footer-version {
+    font-family: 'DM Sans', sans-serif !important;
+    letter-spacing: normal !important;
+}
+
+h1,
+h2 {
+    letter-spacing: -0.02em !important;
 }
 
 .container-fluid {
@@ -50,7 +64,7 @@ input,
 
 .app-header {
     text-align: center;
-    padding: 0 0 12px 0;
+    padding: 0 0 8px 0;
 }
 
 .header-icon {
@@ -64,7 +78,7 @@ input,
     font-size: 16px;
     line-height: 1.2;
     font-weight: 700;
-    letter-spacing: 0.2px;
+    letter-spacing: -0.02em;
     color: var(--text);
     margin: 0 0 2px;
 }
@@ -72,6 +86,7 @@ input,
 .app-subtitle {
     font-size: 10.5px;
     line-height: 1.3;
+    letter-spacing: -0.01em;
     color: var(--text-muted);
     margin: 0;
     font-weight: 400;
@@ -94,7 +109,7 @@ input,
     font-size: 13px;
     line-height: 1;
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: -0.01em;
     background-color: var(--primary);
     color: #ffffff;
     cursor: pointer;
@@ -228,20 +243,22 @@ input,
    ======================================== */
 
 .app-footer {
-    background: var(--bg-soft);
-    border-top: 1px solid var(--border);
-    padding: 8px 0;
-    min-height: 40px;
+    background: transparent;
 }
 
 .app-footer .container-fluid {
-    justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
 }
 
 .footer-version {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
+    text-align: center;
     color: var(--text-muted);
+    opacity: 0.6;
 }
 
 /* ========================================
@@ -259,4 +276,149 @@ input,
     flex: 0 0 100%;
     width: 100%;
     max-width: 100%;
+}
+
+/* ========================================
+   THEME TOGGLE
+   ======================================== */
+
+.theme-toggle {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}
+
+.theme-toggle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.theme-toggle .icon-sun {
+    display: none;
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+body.dark-mode {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+body.dark-mode .app-header .header-icon {
+    color: #94a3b8;
+}
+
+body.dark-mode .app-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .app-subtitle {
+    color: #94a3b8;
+}
+
+body.dark-mode .theme-toggle {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .theme-toggle:hover {
+    background-color: #334155;
+    color: #f8fafc;
+}
+
+body.dark-mode .form-label {
+    color: #e2e8f0;
+}
+
+body.dark-mode .form-control-sm {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+body.dark-mode .form-control-sm:focus {
+    background-color: #1e293b;
+    border-color: #64748b;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+}
+
+body.dark-mode .form-control-sm:disabled {
+    background-color: #0f172a;
+    border-color: #1e293b;
+    color: #64748b;
+}
+
+body.dark-mode .progress-track {
+    background-color: #1e293b;
+}
+
+body.dark-mode .progress-bar {
+    background-color: #e2e8f0;
+}
+
+body.dark-mode .app-footer {
+    background-color: transparent;
+}
+
+body.dark-mode .footer-version {
+    color: #94a3b8;
+}
+
+body.dark-mode .btn-action,
+body.dark-mode .btn-desktop,
+body.dark-mode .btn-mobile,
+body.dark-mode .btn-both {
+    background-color: #f8fafc;
+    border-color: #f8fafc;
+    color: #0f172a;
+}
+
+body.dark-mode .btn-action:hover {
+    background-color: #e2e8f0;
+    border-color: #e2e8f0;
+    color: #0f172a;
+}
+
+body.dark-mode .btn-action:focus,
+body.dark-mode .btn-action:focus-visible,
+body.dark-mode .btn-action:active {
+    background-color: #f8fafc;
+    border-color: #f8fafc;
+    color: #0f172a;
+    box-shadow: none;
+    outline: none;
+}
+
+body.dark-mode .btn-action.btn-stop,
+body.dark-mode .btn-action.btn-stop:focus,
+body.dark-mode .btn-action.btn-stop:focus-visible,
+body.dark-mode .btn-action.btn-stop:active {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: #ffffff;
+    box-shadow: none;
+    outline: none;
+}
+
+body.dark-mode .btn-action.btn-stop:hover {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+    color: #ffffff;
 }
