@@ -259,8 +259,8 @@ async function startSearches(searchType) {
  * Set default UI values
  */
 function setDefaultUI() {
-  // Set the app version number
-  $(config.domElements.appVersion).html(config.general.appVersion);
+  // Set the app version number (revealed on hover over the footer tag)
+  $(config.domElements.appVersion).find(".text-hover").html(config.general.appVersion);
 
   // Set default input values
   $(config.domElements.totDesktopSearchesForm).val(config.searches.desktop);
