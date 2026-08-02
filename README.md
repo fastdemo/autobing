@@ -1,5 +1,4 @@
-![Autobing icon](img/icon256.png)
-
+![Autobing icon](img/icon128.png)
 # Autobing
 
 Automating your Bing searches so you don't have to!
