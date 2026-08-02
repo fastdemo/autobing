@@ -52,22 +52,117 @@ let wordBanks = {
   detail: EXTRA_DETAILS,
 };
 
+// Query pool state - persisted to chrome.storage.local
+let queryPool = {
+  fingerprint: "",
+  indices: [],
+  currentQueryIndex: 0,
+};
+
+const WORD_BANK_STORAGE_KEYS = ["moodDescriptors", "categories", "extraDetails"];
+
 // Load user-customized word banks from chrome.storage.local
 async function loadWordBanks() {
-  const result = await chrome.storage.local.get([
-    "moodDescriptors",
-    "categories",
-    "extraDetails",
-  ]);
+  await loadQueryPool();
+  const result = await chrome.storage.local.get(WORD_BANK_STORAGE_KEYS);
   wordBanks = {
     mood: normalizeWordBank(result.moodDescriptors, MOOD_DESCRIPTORS),
     category: normalizeWordBank(result.categories, CATEGORIES),
     detail: normalizeWordBank(result.extraDetails, EXTRA_DETAILS),
   };
+  await ensurePoolFresh();
 }
 
 function normalizeWordBank(stored, fallback) {
   return Array.isArray(stored) && stored.length > 0 ? stored : fallback;
+}
+
+// Load the saved combination pool from chrome.storage.local
+async function loadQueryPool() {
+  const result = await chrome.storage.local.get("queryPool");
+  if (result.queryPool) {
+    queryPool = result.queryPool;
+  }
+}
+
+// Persist the combination pool and current index to chrome.storage.local
+async function persistQueryPool() {
+  await chrome.storage.local.set({ queryPool: queryPool });
+}
+
+// Fingerprint of the exact word lists the current pool was built from
+function poolFingerprint() {
+  return JSON.stringify([wordBanks.mood, wordBanks.category, wordBanks.detail]);
+}
+
+// Total number of possible mood x category x detail combinations
+function poolTotal() {
+  return (
+    wordBanks.mood.length * wordBanks.category.length * wordBanks.detail.length
+  );
+}
+
+// Build a freshly shuffled index pool for the current word lists
+function rebuildPool() {
+  const total = poolTotal();
+  const indices = new Array(total);
+  for (let i = 0; i < total; i++) {
+    indices[i] = i;
+  }
+  // Fisher-Yates shuffle
+  for (let i = total - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = indices[i];
+    indices[i] = indices[j];
+    indices[j] = tmp;
+  }
+  queryPool = {
+    fingerprint: poolFingerprint(),
+    indices: indices,
+    currentQueryIndex: 0,
+  };
+}
+
+// Rebuild the pool whenever the word lists change, or when pool is missing
+async function ensurePoolFresh() {
+  if (
+    queryPool.fingerprint !== poolFingerprint() ||
+    !Array.isArray(queryPool.indices) ||
+    queryPool.indices.length !== poolTotal()
+  ) {
+    rebuildPool();
+    await persistQueryPool();
+  }
+}
+
+// Decode a pool index into a mood/category/detail combination
+function decodeCombination(index) {
+  const c = wordBanks.category.length;
+  const d = wordBanks.detail.length;
+  const detailIndex = index % d;
+  const categoryIndex = Math.floor(index / d) % c;
+  const moodIndex = Math.floor(index / (c * d));
+  return `${wordBanks.mood[moodIndex]} ${wordBanks.category[categoryIndex]} ${wordBanks.detail[detailIndex]}`;
+}
+
+// Serve the next combination sequentially from the shuffled pool
+function nextUniqueQuery() {
+  if (!Array.isArray(queryPool.indices) || queryPool.indices.length === 0) {
+    rebuildPool();
+  }
+  if (queryPool.currentQueryIndex >= queryPool.indices.length) {
+    // Full cycle exhausted: reshuffle and start a fresh cycle
+    for (let i = queryPool.indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = queryPool.indices[i];
+      queryPool.indices[i] = queryPool.indices[j];
+      queryPool.indices[j] = tmp;
+    }
+    queryPool.currentQueryIndex = 0;
+  }
+  const index = queryPool.indices[queryPool.currentQueryIndex];
+  queryPool.currentQueryIndex++;
+  return decodeCombination(index);
 }
 
 // Configuration
@@ -112,7 +207,6 @@ let searchState = {
   millisecondsMax: 10000,
   desktopSearches: 3,
   mobileSearches: 3,
-  usedQueries: new Set(),
   completionPending: false,
 };
 
@@ -128,49 +222,12 @@ async function loadState() {
   const result = await chrome.storage.local.get("searchState");
   if (result.searchState) {
     searchState = result.searchState;
-    // usedQueries is a Set in memory but serializes as {} through storage
-    if (!(searchState.usedQueries instanceof Set)) {
-      searchState.usedQueries = new Set(
-        Array.isArray(searchState.usedQueries)
-          ? searchState.usedQueries
-          : [],
-      );
-    }
   }
 }
 
 // Helper functions
 function pickRandom(array) {
   return array[Math.floor(Math.random() * array.length)];
-}
-
-// Build a dynamic search query from random word bank combinations
-function generateDynamicQuery() {
-  const template = Math.floor(Math.random() * 4);
-  const mood = pickRandom(wordBanks.mood);
-  const category = pickRandom(wordBanks.category);
-  const detail = pickRandom(wordBanks.detail);
-
-  switch (template) {
-    case 0:
-      return `${mood} ${category} ${detail}`;
-    case 1:
-      return `${mood} ${category}`;
-    case 2:
-      return `${category} ${detail}`;
-    default:
-      return `how to find ${mood} ${category}`;
-  }
-}
-
-// Get a query that has not been used in the current session
-function getUniqueQuery() {
-  let query = generateDynamicQuery();
-  while (searchState.usedQueries.has(query)) {
-    query = generateDynamicQuery();
-  }
-  searchState.usedQueries.add(query);
-  return query;
 }
 
 function randomDelay() {
@@ -371,8 +428,13 @@ async function performSingleSearch() {
   // Refresh word banks so customizations apply to the current run
   await loadWordBanks();
 
+  const query = nextUniqueQuery();
+
+  // Save the current pool index after every generated query
+  await persistQueryPool();
+
   const searchUrl = config.bing.url
-    .replace("{q}", encodeURIComponent(getUniqueQuery()))
+    .replace("{q}", encodeURIComponent(query))
     .replace("{form}", config.bing.form)
     .replace("{cvid}", "");
 
@@ -478,7 +540,6 @@ async function completeSearches() {
     tabId: null,
     searchType: null,
     phase: null,
-    usedQueries: new Set(),
     completionPending: false,
   };
 
@@ -513,7 +574,6 @@ async function stopSearches() {
     tabId: null,
     searchType: null,
     phase: null,
-    usedQueries: new Set(),
     completionPending: false,
   };
 
@@ -542,7 +602,6 @@ async function startSearches(type, settings) {
     millisecondsMax: settings.millisecondsMax,
     desktopSearches: settings.desktopSearches,
     mobileSearches: settings.mobileSearches,
-    usedQueries: new Set(),
     completionPending: false,
   };
 
@@ -619,6 +678,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     });
     return true; // Indicates async response
+  }
+});
+
+// Re-index the pool safely whenever word lists are edited in Settings
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  const keys = Object.keys(changes);
+  if (keys.some((key) => WORD_BANK_STORAGE_KEYS.includes(key))) {
+    loadWordBanks();
   }
 });
 
