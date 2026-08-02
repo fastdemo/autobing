@@ -1,7 +1,7 @@
 {
   "name": "Autobing",
   "version": "1.0.0",
-  "description": "With this extension, you can automate searches on the Bing search engine to earn points for Microsoft Rewards.",
+  "description": "Automating your Bing searches so you don't have to! (@fastdemo)",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
