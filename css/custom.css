@@ -80,6 +80,18 @@ h2 {
     padding: 0 0 14px 0;
 }
 
+.header-link,
+.title-link {
+    display: block;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.header-link {
+    line-height: 0;
+}
+
 .header-icon {
     display: block;
     margin: 0;
@@ -103,13 +115,21 @@ h2 {
 }
 
 .app-title {
+    display: inline-block;
+    cursor: pointer;
     font-size: 16px;
     line-height: 1.2;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text);
     margin: 0;
-    transition: color 0.25s ease;
+    transition: color 0.25s ease, transform 0.2s ease, text-shadow 0.25s ease;
+}
+
+.app-title:hover {
+    transform: scale(1.03);
+    color: #35476e;
+    text-shadow: 0 0 6px rgba(44, 59, 89, 0.2);
 }
 
 .app-subtitle {
@@ -359,6 +379,11 @@ body.dark-mode .app-header .header-icon {
 
 body.dark-mode .app-title {
     color: #f8fafc;
+}
+
+body.dark-mode .app-title:hover {
+    color: #9fb4d6;
+    text-shadow: 0 0 8px rgba(143, 164, 196, 0.35);
 }
 
 body.dark-mode .app-subtitle {

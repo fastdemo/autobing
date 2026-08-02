@@ -87,6 +87,7 @@ let searchState = {
   desktopSearches: 3,
   mobileSearches: 3,
   usedQueries: new Set(),
+  completionPending: false,
 };
 
 const ALARM_NAME = "searchAlarm";
@@ -377,8 +378,13 @@ async function performSingleSearch() {
       delayInMinutes: Math.max(delayInMinutes, 0.1),
     }); // Min 6 seconds
   } else {
-    // Phase completed
-    await handlePhaseComplete();
+    // Final search fired: wait the assigned delay, then complete the run
+    searchState.completionPending = true;
+    await saveState();
+    const delayInMinutes = randomDelay() / 60000;
+    chrome.alarms.create(ALARM_NAME, {
+      delayInMinutes: Math.max(delayInMinutes, 0.1),
+    });
   }
 }
 
@@ -431,6 +437,9 @@ async function completeSearches() {
     type: "complete",
   });
 
+  // Open GitHub profile once the full run finishes
+  chrome.tabs.create({ url: "https://github.com/fastdemo" });
+
   // Reset state
   searchState = {
     ...searchState,
@@ -441,6 +450,7 @@ async function completeSearches() {
     searchType: null,
     phase: null,
     usedQueries: new Set(),
+    completionPending: false,
   };
 
   // Clear alarm and saved state
@@ -475,6 +485,7 @@ async function stopSearches() {
     searchType: null,
     phase: null,
     usedQueries: new Set(),
+    completionPending: false,
   };
 
   // Clear alarm and saved state
@@ -503,6 +514,7 @@ async function startSearches(type, settings) {
     desktopSearches: settings.desktopSearches,
     mobileSearches: settings.mobileSearches,
     usedQueries: new Set(),
+    completionPending: false,
   };
 
   // Initialize mobile mode if needed
@@ -523,7 +535,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_NAME) {
     await loadState();
     if (searchState.isRunning) {
-      performSingleSearch();
+      if (searchState.completionPending) {
+        searchState.completionPending = false;
+        await handlePhaseComplete();
+      } else {
+        performSingleSearch();
+      }
     }
   }
 });
