@@ -1,47 +1,47 @@
-![autobing icon](img/icon128.png)
-# autobing
+![Autobing icon](img/icon128.png)
+# Autobing
 
-automating your bing searches so you don't have to!
+Automating your Bing searches so you don't have to!
 
-## what it does
+## What it does
 
-autobing is a chrome extension that runs bing searches for you. it helps you earn microsoft rewards points without clicking through searches by hand.
+Autobing is a Chrome extension that runs Bing searches for you. It helps you earn Microsoft Rewards points without clicking through searches by hand.
 
-## features
+## Features
 
-- runs a set number of desktop searches.
-- random delay between each search to keep things natural.
-- progress bar shows how far the run is.
-- settings and dark mode are saved between sessions.
+- Runs a set number of desktop searches.
+- Random delay between each search to keep things natural.
+- Progress bar shows how far the run is.
+- Settings and dark mode are saved between sessions.
 
-## install
+## Install
 
-1. download or clone this repo.
-2. open `chrome://extensions/`.
-3. turn on developer mode.
-4. click "load unpacked".
-5. pick the extension folder.
+1. Download or clone this repo.
+2. Open `chrome://extensions/`.
+3. Turn on Developer mode.
+4. Click "Load unpacked".
+5. Pick the extension folder.
 
-## usage
+## Usage
 
-1. click the autobing icon in the toolbar.
-2. set how many searches you want to run.
-3. set the min and max delay in milliseconds.
-4. click start.
+1. Click the Autobing icon in the toolbar.
+2. Set how many searches you want to run.
+3. Set the min and max delay in milliseconds.
+4. Click Start.
 
-## license
+## License
 
-mit. see [license](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
-## disclaimer
+## Disclaimer
 
-not affiliated with microsoft or the microsoft rewards program. use it in line with microsoft rewards terms of service.
+Not affiliated with Microsoft or the Microsoft Rewards program. Use it in line with Microsoft Rewards terms of service.
 
-## credits
+## Credits
 
-* **rewards search automator** - the original extension this project was built on top of and refactored from.
-* **iago** - a japanese learning app. i referenced their art style for the mascot, which is based on shion yorigami (from "touhou project").
+* **Rewards Search Automator** - the original extension this project was built on top of and refactored from.
+* **Iago** - a Japanese learning app. I referenced their art style for the mascot, which is based on Shion Yorigami (from Touhou Project).
 
-this is an open-source project, and i don't intend for this to make money at all. if you're uncomfortable with me using your assets, feel free to reach out and i'll happily take it down!
+This is an open-source project, and I don't intend for this to make money at all. If you're uncomfortable with me using your assets, feel free to reach out and I'll happily take it down!
 
-made with love by **@fastdemo** <3
+Made with love by **@fastdemo** <3
