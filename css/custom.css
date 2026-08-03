@@ -833,6 +833,7 @@ body.dark-mode .search-stats .stats-sep {
 
 .endless-input-wrap {
     position: relative;
+    margin-bottom: 10px;
 }
 
 /* Hide the native number steppers on the Searches field so they never
@@ -859,40 +860,41 @@ body.dark-mode .search-stats .stats-sep {
     padding: 3px;
     margin: 0;
     border: none;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
-    color: #4facfe;
+    color: #7A939E;
     line-height: 0;
     transition: color 0.2s ease, background-color 0.25s ease;
 }
 
 .endless-toggle:hover {
-    background: var(--bg-soft);
-    color: #00f2fe;
+    background: rgba(255, 255, 255, 0.1);
+    color: #9DB2BB;
 }
 
 .endless-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.25);
+    box-shadow: 0 0 0 3px rgba(122, 147, 158, 0.3);
 }
 
 .endless-toggle.active {
-    color: #4facfe;
-    background: rgba(79, 172, 254, 0.12);
+    color: #4A7B82;
+    background: rgba(122, 147, 158, 0.22);
 }
 
 body.dark-mode .endless-toggle {
-    color: #4facfe;
+    background: rgba(255, 255, 255, 0.05);
+    color: #7A939E;
 }
 
 body.dark-mode .endless-toggle:hover {
-    background-color: #334155;
-    color: #00f2fe;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #9DB2BB;
 }
 
 body.dark-mode .endless-toggle.active {
-    color: #00f2fe;
-    background-color: rgba(79, 172, 254, 0.12);
+    color: #4A7B82;
+    background-color: rgba(122, 147, 158, 0.22);
 }
 
 /* ========================================
@@ -903,9 +905,9 @@ body.dark-mode .endless-toggle.active {
     width: 100% !important;
     background: linear-gradient(
         90deg,
-        #00f2fe,
-        #4facfe,
-        #00f2fe
+        #78C1C8,
+        #8EB4E3,
+        #78C1C8
     );
     background-size: 200% 100%;
     animation: endless-slide 1.6s linear infinite;
@@ -914,9 +916,9 @@ body.dark-mode .endless-toggle.active {
 body.dark-mode .progress-bar.endless {
     background: linear-gradient(
         90deg,
-        #00f2fe,
-        #4facfe,
-        #00f2fe
+        #78C1C8,
+        #8EB4E3,
+        #78C1C8
     );
     background-size: 200% 100%;
 }
