@@ -3,36 +3,74 @@ import config from "./config.js";
 chrome.runtime.connect({ name: "popup" });
 
 let isRunning = false;
+let endlessMode = false;
+let lastNumericValue = null;
+let startTime = 0;
+let timerInterval = null;
 
 // Progressbar object
 var progressBar = document.querySelector(config.domElements.progressBar);
 
+// Hide the progress track until persisted state is loaded (prevents a 0% flash)
+var progressTrack = document.querySelector(config.domElements.progressTrack);
+progressTrack.classList.add("progress-pending");
+
 setDefaultUI();
-loadPreferences();
-checkRunningState();
+loadPreferences().then(() => restoreSearchState());
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "progress") {
     setProgress(message.progress);
+    updateStats(
+      message.currentSearch,
+      message.totalSearches,
+      message.progress,
+      message.endless,
+    );
   } else if (message.type === "phaseChange") {
     console.log(`Phase changed to: ${message.phase}`);
+    updateStats(0, message.totalSearches, 0, message.endless);
   } else if (message.type === "complete") {
     setProgress(0);
+    progressBar.classList.remove("endless");
+    stopTimer();
     activateForms();
   } else if (message.type === "stopped") {
     setProgress(0);
+    progressBar.classList.remove("endless");
+    stopTimer();
     activateForms();
   }
 });
 
-// Check if searches are already running when popup opens
-function checkRunningState() {
-  chrome.runtime.sendMessage({ type: "getState" }, (response) => {
-    if (response && response.isRunning) {
+// Restore persisted search state (storage-first so the bar shows the real
+// absolute progress instead of flashing to 0% when the popup opens)
+async function restoreSearchState() {
+  try {
+    const result = await chrome.storage.local.get(["searchState", "startTime"]);
+    const state = result.searchState;
+
+    if (state && state.isRunning) {
+      const progress =
+        state.totalSearches > 0
+          ? parseInt((state.currentSearch / state.totalSearches) * 100) || 0
+          : 0;
+      setProgress(progress);
+      updateStats(state.currentSearch, state.totalSearches, progress, state.endless);
+      if (state.endless) setEndlessUI(true);
       deactivateForms();
+      startTimer();
+    } else {
+      setProgress(0);
+      updateStats(0, 0, 0, false);
     }
-  });
+  } catch (error) {
+    setProgress(0);
+    updateStats(0, 0, 0, false);
+  } finally {
+    progressTrack.classList.remove("progress-pending");
+  }
 }
 
 $(config.domElements.totDesktopSearchesForm).on("change", function () {
@@ -40,6 +78,35 @@ $(config.domElements.totDesktopSearchesForm).on("change", function () {
   config.searches.desktop = value;
   chrome.storage.local.set({ desktopSearches: value });
 });
+
+// Endless mode toggle (infinity icon inside the Searches input)
+$(config.domElements.endlessToggle).on("click", () => {
+  const next = !endlessMode;
+  setEndlessUI(next);
+  chrome.storage.local.set({ endlessMode: next });
+});
+
+function setEndlessUI(enabled) {
+  const input = $(config.domElements.totDesktopSearchesForm);
+  if (enabled) {
+    endlessMode = true;
+    const current = input.val();
+    if (String(current) !== "∞") lastNumericValue = current || "";
+    input.attr("type", "text").val("∞").prop("readonly", true);
+    $(config.domElements.endlessToggle).addClass("active");
+  } else {
+    endlessMode = false;
+    input
+      .val(
+        lastNumericValue !== null && lastNumericValue !== ""
+          ? lastNumericValue
+          : "",
+      )
+      .prop("readonly", false)
+      .attr("type", "number");
+    $(config.domElements.endlessToggle).removeClass("active");
+  }
+}
 
 $(config.domElements.totMobileSearchesForm).on("change", function () {
   const value = $(config.domElements.totMobileSearchesForm).val();
@@ -305,12 +372,22 @@ $(config.domElements.desktopMobileButton).on("click", async () => {
 async function startSearches(searchType) {
   deactivateForms();
 
+  const searchesValue = $(config.domElements.totDesktopSearchesForm).val();
+  const endless = endlessMode || String(searchesValue) === "∞";
+  const desktopSearches = endless ? 0 : parseInt(config.searches.desktop);
+  const mobileSearches = endless ? 0 : parseInt(config.searches.mobile);
+
   const settings = {
-    desktopSearches: parseInt(config.searches.desktop),
-    mobileSearches: parseInt(config.searches.mobile),
+    desktopSearches: desktopSearches,
+    mobileSearches: mobileSearches,
     millisecondsMin: parseInt(config.searches.millisecondsMin),
     millisecondsMax: parseInt(config.searches.millisecondsMax),
+    endless: endless,
   };
+
+  await chrome.storage.local.set({ startTime: Date.now() });
+  updateStats(0, 0, 0, endless);
+  startTimer();
 
   chrome.runtime.sendMessage(
     {
@@ -322,6 +399,7 @@ async function startSearches(searchType) {
       if (!response || !response.success) {
         console.error("Failed to start searches:", response?.error);
         activateForms();
+        stopTimer();
       }
     },
   );
@@ -355,6 +433,7 @@ async function loadPreferences() {
     "millisecondsMin",
     "millisecondsMax",
     "darkMode",
+    "endlessMode",
   ]);
 
   config.searches.desktop =
@@ -373,6 +452,8 @@ async function loadPreferences() {
   $(config.domElements.waitingBetweenSearchesFormMax).val(
     config.searches.millisecondsMax,
   );
+
+  if (result.endlessMode && !endlessMode) setEndlessUI(true);
 
   applyDarkMode(result.darkMode === true);
 }
@@ -419,4 +500,38 @@ function activateForms() {
  */
 function setProgress(value) {
   progressBar.style.width = value + "%";
+}
+
+/**
+ * Update the live stats row and progress bar mode
+ */
+function updateStats(currentSearch, totalSearches, percent, endless) {
+  $(config.domElements.statsCount).text(
+    endless ? `${currentSearch} / ∞` : `${currentSearch} / ${totalSearches}`,
+  );
+  $(config.domElements.statsPercent).text(endless ? "Endless" : `${percent}%`);
+  progressBar.classList.toggle("endless", !!endless);
+}
+
+/**
+ * Start the live elapsed-time counter, based on the stored startTime
+ */
+async function startTimer() {
+  const result = await chrome.storage.local.get("startTime");
+  startTime = result.startTime || Date.now();
+  tickTimer();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function tickTimer() {
+  const elapsed = Math.max(0, Date.now() - startTime);
+  const minutes = String(Math.floor(elapsed / 60000)).padStart(2, "0");
+  const seconds = String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0");
+  $(config.domElements.statsTimer).text(`${minutes}:${seconds}`);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
 }
