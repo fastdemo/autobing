@@ -49,23 +49,43 @@
             </div>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="row">
-            <div class="col-12">
-                <div class="progress-track">
-                    <div class="progress-bar" style="width: 0%"></div>
+        <!-- Progress & Stats -->
+        <div class="progress-wrap">
+            <div class="row">
+                <div class="col-12">
+                    <div class="progress-track">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="search-stats" id="searchStats">
+                        <span id="statsTimer">00:00</span>
+                        <span class="stats-sep">•</span>
+                        <span id="statsCount">0 / 0</span>
+                        <span class="stats-sep">•</span>
+                        <span id="statsPercent">0%</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Settings Form -->
-        <div class="row g-2">
+        <div class="row gy-0">
             <div class="col-6" id="desktopSearchesCol">
                 <label class="form-label" for="totDesktopSearchesForm">
                     <i class="fa-solid fa-magnifying-glass"></i> Searches
                 </label>
-                <input type="number" class="form-control form-control-sm" 
-                    id="totDesktopSearchesForm" min="1" value="">
+                <div class="endless-input-wrap">
+                    <input type="number" class="form-control form-control-sm" 
+                        id="totDesktopSearchesForm" min="1" value="">
+                    <button type="button" class="endless-toggle" id="endlessToggle" 
+                        aria-label="Toggle endless mode" title="Endless mode">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg>
+                    </button>
+                </div>
             </div>
             <div class="col-6" id="mobileSearchesCol">
                 <label class="form-label" for="totMobileSearchesForm">

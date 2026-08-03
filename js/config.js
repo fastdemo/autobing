@@ -55,6 +55,12 @@ let config = {
     extraDetailsField: "#extraDetailsField",
     settingsReset: "#settingsReset",
     progressBar: ".progress-bar",
+    progressTrack: ".progress-track",
+    searchStats: "#searchStats",
+    statsTimer: "#statsTimer",
+    statsCount: "#statsCount",
+    statsPercent: "#statsPercent",
+    endlessToggle: "#endlessToggle",
   },
 };
 

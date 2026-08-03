@@ -207,6 +207,9 @@ let searchState = {
   millisecondsMax: 10000,
   desktopSearches: 3,
   mobileSearches: 3,
+  searchStartTime: null,
+  nextSearchTime: null,
+  endless: false,
   completionPending: false,
 };
 
@@ -449,34 +452,42 @@ async function performSingleSearch() {
   }
 
   searchState.currentSearch++;
-  const progress = parseInt(
-    (searchState.currentSearch / searchState.totalSearches) * 100,
-  );
+  const progress =
+    searchState.totalSearches > 0
+      ? parseInt(
+          (searchState.currentSearch / searchState.totalSearches) * 100,
+        )
+      : 0;
 
-  notifyPopup({
-    type: "progress",
-    progress: progress,
-    currentSearch: searchState.currentSearch,
-    totalSearches: searchState.totalSearches,
-    phase: searchState.phase,
-  });
-
-  if (searchState.currentSearch < searchState.totalSearches) {
-    // Schedule next search using chrome.alarms
-    await saveState();
+  if (searchState.endless || searchState.currentSearch < searchState.totalSearches) {
+    // Schedule next search using chrome.alarms (or loop forever in Endless mode)
     const delayInMinutes = randomDelay() / 60000; // Convert ms to minutes
+    searchState.nextSearchTime = Date.now() + delayInMinutes * 60000;
+    await saveState();
     chrome.alarms.create(ALARM_NAME, {
       delayInMinutes: Math.max(delayInMinutes, 0.1),
     }); // Min 6 seconds
   } else {
     // Final search fired: wait the assigned delay, then complete the run
+    const delayInMinutes = randomDelay() / 60000;
+    searchState.nextSearchTime = Date.now() + delayInMinutes * 60000;
     searchState.completionPending = true;
     await saveState();
-    const delayInMinutes = randomDelay() / 60000;
     chrome.alarms.create(ALARM_NAME, {
       delayInMinutes: Math.max(delayInMinutes, 0.1),
     });
   }
+
+  // Notify the popup AFTER state is persisted so the bar never reads stale data
+  notifyPopup({
+    type: "progress",
+    progress: progress,
+    currentSearch: searchState.currentSearch,
+    totalSearches: searchState.totalSearches,
+    nextSearchTime: searchState.nextSearchTime,
+    endless: searchState.endless,
+    phase: searchState.phase,
+  });
 }
 
 // Handle phase completion
@@ -503,6 +514,7 @@ async function handlePhaseComplete() {
         type: "phaseChange",
         phase: "mobile",
         totalSearches: searchState.totalSearches,
+        endless: searchState.endless,
       });
 
       // Start mobile searches using chrome.alarms
@@ -515,7 +527,28 @@ async function handlePhaseComplete() {
       // Mobile phase completed
       await activeDesktopAgent(searchState.tabId);
       await disableDebugger(searchState.tabId);
-      await completeSearches();
+
+      if (searchState.endless) {
+        // Endless mode: loop back to the desktop phase and keep going
+        searchState.phase = "desktop";
+        searchState.currentSearch = 0;
+        searchState.totalSearches = searchState.desktopSearches;
+
+        notifyPopup({
+          type: "phaseChange",
+          phase: "desktop",
+          totalSearches: searchState.totalSearches,
+          endless: searchState.endless,
+        });
+
+        await saveState();
+        const delayInMinutes = randomDelay() / 60000;
+        chrome.alarms.create(ALARM_NAME, {
+          delayInMinutes: Math.max(delayInMinutes, 0.1),
+        });
+      } else {
+        await completeSearches();
+      }
     }
   }
 }
@@ -540,6 +573,9 @@ async function completeSearches() {
     tabId: null,
     searchType: null,
     phase: null,
+    searchStartTime: null,
+    nextSearchTime: null,
+    endless: false,
     completionPending: false,
   };
 
@@ -602,6 +638,9 @@ async function startSearches(type, settings) {
     millisecondsMax: settings.millisecondsMax,
     desktopSearches: settings.desktopSearches,
     mobileSearches: settings.mobileSearches,
+    searchStartTime: Date.now(),
+    nextSearchTime: null,
+    endless: settings.endless === true,
     completionPending: false,
   };
 
@@ -673,8 +712,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         isRunning: searchState.isRunning,
         currentSearch: searchState.currentSearch,
         totalSearches: searchState.totalSearches,
+        progress:
+          searchState.totalSearches > 0
+            ? parseInt(
+                (searchState.currentSearch / searchState.totalSearches) * 100,
+              )
+            : 0,
         phase: searchState.phase,
         searchType: searchState.searchType,
+        searchStartTime: searchState.searchStartTime,
+        nextSearchTime: searchState.nextSearchTime,
+        endless: searchState.endless,
       });
     });
     return true; // Indicates async response
