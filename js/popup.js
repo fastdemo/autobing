@@ -109,6 +109,19 @@ function setEndlessUI(enabled) {
   }
 }
 
+// RAM Saver Mode toggle (hides heavy Bing DOM while a batch is running)
+$(config.domElements.ramSaverToggle).on("click", () => {
+  const enabled = !$(config.domElements.ramSaverToggle).hasClass("active");
+  setRamSaverUI(enabled);
+  chrome.storage.local.set({ ramSaverEnabled: enabled });
+});
+
+function setRamSaverUI(enabled) {
+  $(config.domElements.ramSaverToggle)
+    .toggleClass("active", enabled)
+    .attr("aria-checked", String(enabled));
+}
+
 $(config.domElements.totMobileSearchesForm).on("change", function () {
   const value = $(config.domElements.totMobileSearchesForm).val();
   config.searches.mobile = value;
@@ -416,6 +429,7 @@ $(config.domElements.settingsReset).on("click", async () => {
     millisecondsMax: DEFAULT_SEARCH_CONFIG.millisecondsMax,
   });
   await chrome.storage.local.remove("darkMode");
+  await chrome.storage.local.remove("ramSaverEnabled");
 
   // Rebuild the combination pool and reset its index in the background
   chrome.runtime.sendMessage({ type: "resetPool" }, (response) => {
@@ -439,6 +453,7 @@ $(config.domElements.settingsReset).on("click", async () => {
     DEFAULT_SEARCH_CONFIG.millisecondsMax,
   );
   applyDarkMode(false);
+  setRamSaverUI(false);
 
   updateComboStats();
   flashResetFeedback();
@@ -561,6 +576,7 @@ async function loadPreferences() {
     "millisecondsMax",
     "darkMode",
     "endlessMode",
+    "ramSaverEnabled",
   ]);
 
   config.searches.desktop =
@@ -581,6 +597,8 @@ async function loadPreferences() {
   );
 
   if (result.endlessMode && !endlessMode) setEndlessUI(true);
+
+  setRamSaverUI(result.ramSaverEnabled === true);
 
   applyDarkMode(result.darkMode === true);
 }

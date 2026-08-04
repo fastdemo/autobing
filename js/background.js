@@ -101,6 +101,9 @@ let queryPool = {
 
 const WORD_BANK_STORAGE_KEYS = ["moodDescriptors", "categories", "extraDetails"];
 
+// RAM Saver Mode - whether heavy Bing DOM should be hidden during batches
+let ramSaverEnabled = false;
+
 // Load user-customized word banks from chrome.storage.local
 async function loadWordBanks() {
   await loadQueryPool();
@@ -262,10 +265,14 @@ async function saveState() {
 
 // Load state from chrome.storage.local
 async function loadState() {
-  const result = await chrome.storage.local.get("searchState");
+  const result = await chrome.storage.local.get([
+    "searchState",
+    "ramSaverEnabled",
+  ]);
   if (result.searchState) {
     searchState = result.searchState;
   }
+  ramSaverEnabled = result.ramSaverEnabled === true;
 }
 
 // Helper functions
@@ -601,6 +608,11 @@ async function completeSearches() {
     type: "complete",
   });
 
+  // Restore normal page DOM before the batch is finished
+  if (searchState.tabId) {
+    chrome.tabs.sendMessage(searchState.tabId, { type: "ramSaverOff" }).catch(() => {});
+  }
+
   // Open GitHub profile once the full run finishes
   chrome.tabs.create({ url: "https://github.com/fastdemo" });
 
@@ -631,6 +643,11 @@ async function stopSearches() {
   notifyPopup({
     type: "stopped",
   });
+
+  // Restore normal page DOM immediately so browsing is unblocked
+  if (searchState.tabId) {
+    chrome.tabs.sendMessage(searchState.tabId, { type: "ramSaverOff" }).catch(() => {});
+  }
 
   // Try to disable debugger if active
   if (
@@ -665,6 +682,12 @@ async function startSearches(type, settings) {
   }
 
   const tabId = await getTabId();
+
+  // Blank the search page immediately if RAM Saver Mode is on (the content
+  // script also self-activates via storage after each navigation)
+  if (ramSaverEnabled) {
+    chrome.tabs.sendMessage(tabId, { type: "ramSaverOn" }).catch(() => {});
+  }
 
   searchState = {
     isRunning: true,
@@ -786,6 +809,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
   const keys = Object.keys(changes);
   if (keys.some((key) => WORD_BANK_STORAGE_KEYS.includes(key))) {
     loadWordBanks();
+  }
+  if (changes.ramSaverEnabled) {
+    ramSaverEnabled = changes.ramSaverEnabled.newValue === true;
   }
 });
 
