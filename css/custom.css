@@ -540,12 +540,14 @@ h2 {
     line-height: 1.2em;
     font-weight: 600;
     text-align: center;
+    pointer-events: none;
 }
 
 .version-tag .text-default,
 .version-tag .text-hover {
-    display: block;
+    display: inline-block;
     white-space: nowrap;
+    pointer-events: auto;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 
@@ -557,9 +559,8 @@ h2 {
 .version-tag .text-hover {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
-    transform: translateY(100%);
+    left: 50%;
+    transform: translate(-50%, 100%);
     opacity: 0;
 }
 
@@ -570,7 +571,7 @@ h2 {
 }
 
 .version-tag:hover .text-hover {
-    transform: translateY(0%);
+    transform: translate(-50%, 0%);
     opacity: 1;
 }
 
@@ -918,7 +919,7 @@ body.dark-mode .combo-card-label {
 .endless-toggle {
     position: absolute;
     top: 50%;
-    right: 12px;
+    right: 8px;
     transform: translateY(-50%);
     display: flex;
     align-items: center;
@@ -926,31 +927,31 @@ body.dark-mode .combo-card-label {
     padding: 3px;
     margin: 0;
     border: none;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.05);
     border-radius: 6px;
-    color: #7A939E;
+    color: #5a6e7f;
     line-height: 0;
     transition: color 0.2s ease, background-color 0.25s ease;
 }
 
 .endless-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #9DB2BB;
+    background: rgba(0, 0, 0, 0.09);
+    color: #4a5f70;
 }
 
 .endless-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(122, 147, 158, 0.3);
+    box-shadow: 0 0 0 3px rgba(90, 110, 127, 0.3);
 }
 
 .endless-toggle.active {
     color: #4A7B82;
-    background: rgba(122, 147, 158, 0.22);
+    background: rgba(0, 0, 0, 0.07);
 }
 
 body.dark-mode .endless-toggle {
-    background: rgba(255, 255, 255, 0.05);
-    color: #7A939E;
+    background: rgba(255, 255, 255, 0.06);
+    color: #7a939e;
 }
 
 body.dark-mode .endless-toggle:hover {
