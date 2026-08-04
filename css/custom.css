@@ -965,6 +965,82 @@ body.dark-mode .endless-toggle.active {
 }
 
 /* ========================================
+   PERFORMANCE - RAM SAVER MODE TOGGLE
+   ======================================== */
+
+/* Header row: section title left, toggle switch right-aligned inline */
+.settings-subheader-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+}
+
+.settings-subheader-row .settings-subheader {
+    margin: 0;
+}
+
+.ram-saver-toggle {
+    position: relative;
+    flex-shrink: 0;
+    width: 36px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ram-saver-toggle .ram-saver-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease;
+}
+
+.ram-saver-toggle:hover {
+    opacity: 0.85;
+    transform: scale(1.04);
+}
+
+.ram-saver-toggle:active {
+    transform: scale(0.96);
+}
+
+.ram-saver-toggle.active {
+    background: #4a7b82;
+}
+
+.ram-saver-toggle.active .ram-saver-thumb {
+    transform: translateX(16px);
+}
+
+.ram-saver-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 123, 130, 0.3);
+}
+
+body.dark-mode .ram-saver-toggle {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode .ram-saver-toggle:hover {
+    opacity: 0.85;
+}
+
+body.dark-mode .ram-saver-toggle.active {
+    background: #4a7b82;
+}
+
+/* ========================================
    INDETERMINATE PROGRESS (Endless mode)
    ======================================== */
 

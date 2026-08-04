@@ -16,5 +16,12 @@
   },
   "background": {
     "service_worker": "./js/background.js"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.bing.com/*"],
+      "js": ["js/content.js"],
+      "run_at": "document_start"
+    }
+  ]
 }
