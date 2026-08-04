@@ -1,6 +1,6 @@
 let config = {
   general: {
-    appVersion: "v1.0.0",
+    appVersion: "v1.2.0",
   },
   bing: {
     url: "https://bing.com/search?q={q}&form={form}&cvid={cvid}",
@@ -61,6 +61,8 @@ let config = {
     statsCount: "#statsCount",
     statsPercent: "#statsPercent",
     endlessToggle: "#endlessToggle",
+    comboSearches: "#comboSearches",
+    comboTotal: "#comboTotal",
   },
 };
 
