@@ -77,6 +77,7 @@ $(config.domElements.totDesktopSearchesForm).on("change", function () {
   const value = $(config.domElements.totDesktopSearchesForm).val();
   config.searches.desktop = value;
   chrome.storage.local.set({ desktopSearches: value });
+  updateComboStats();
 });
 
 // Endless mode toggle (infinity icon inside the Searches input)
@@ -246,6 +247,8 @@ async function loadWordBankFields() {
         : DEFAULT_WORD_BANKS[presetKey];
     $(id).val(list.join(", "));
   });
+
+  updateComboStats();
 }
 
 // Split textarea value into a trimmed, non-empty array and save it
@@ -258,9 +261,61 @@ function saveWordBankField(storageKey, selector) {
   chrome.storage.local.set({ [storageKey]: list });
 }
 
+// Count comma-separated words in a word bank field
+function countWords(selector) {
+  return $(selector)
+    .val()
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0).length;
+}
+
+// Live combo counter: [unique searches in memory] • [total combos] • [coverage]% pool
+async function updateComboStats() {
+  const countField = (selector) =>
+    Math.max(
+      countWords(selector),
+      1,
+    );
+  const descriptors = countField(config.domElements.moodDescriptorsField);
+  const categories = countField(config.domElements.categoriesField);
+  const extras = countField(config.domElements.extraDetailsField);
+  const totalCombinations = descriptors * categories * extras;
+
+  // Unique searches in memory = how many pool indices have been served
+  const result = await chrome.storage.local.get("queryPool");
+  let uniqueSearches = Array.isArray(result.queryPool?.indices)
+    ? result.queryPool.currentQueryIndex
+    : 0;
+
+  // Automatic 100% reset: pool exhausted, wipe history so the cycle starts fresh
+  if (totalCombinations > 0 && uniqueSearches >= totalCombinations) {
+    await chrome.storage.local.set({
+      queryPool: { fingerprint: "", indices: [], currentQueryIndex: 0 },
+    });
+    uniqueSearches = 0;
+  }
+
+  $(config.domElements.comboSearches).text(uniqueSearches.toLocaleString());
+  $(config.domElements.comboTotal).text(totalCombinations.toLocaleString());
+
+  let coverage = Math.min(100, (uniqueSearches / totalCombinations) * 100);
+  let coverageText;
+  if (coverage <= 0) {
+    coverageText = "0";
+  } else if (coverage < 1) {
+    coverageText = coverage.toFixed(2);
+    if (coverageText === "0.00") coverageText = coverage.toFixed(3);
+  } else {
+    coverageText = coverage.toFixed(1);
+  }
+  $(config.domElements.comboPercent).text(`${coverageText}%`);
+}
+
 // Auto-save on input (debounced) and change (immediate)
 WORD_BANK_FIELDS.forEach(({ id, storageKey }) => {
   $(id).on("input", () => {
+    updateComboStats();
     clearTimeout(wordBankSaveTimers[storageKey]);
     wordBankSaveTimers[storageKey] = setTimeout(
       () => saveWordBankField(storageKey, id),
@@ -271,7 +326,21 @@ WORD_BANK_FIELDS.forEach(({ id, storageKey }) => {
   $(id).on("change", () => {
     clearTimeout(wordBankSaveTimers[storageKey]);
     saveWordBankField(storageKey, id);
+    updateComboStats();
   });
+});
+
+// Refresh the combo counter live as searches consume the pool
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  if (
+    changes.queryPool ||
+    changes.moodDescriptors ||
+    changes.categories ||
+    changes.extraDetails
+  ) {
+    updateComboStats();
+  }
 });
 
 // Restore factory settings: word banks, search counts, timers, theme, and pool
@@ -313,6 +382,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   );
   applyDarkMode(false);
 
+  updateComboStats();
   flashResetFeedback();
 });
 
