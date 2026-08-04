@@ -132,44 +132,84 @@ const DEFAULT_WORD_BANKS = {
   mood: [
     "best", "easy", "quick", "top rated", "simple", "healthy", "cheap",
     "affordable", "popular", "trending", "creative", "essential", "ultimate",
-    "beginner", "minimalist", "cozy", "modern", "underrated", "budget",
-    "smart", "fun", "relaxing", "fast", "great", "cool", "unique", "useful",
-    "stylish", "practical", "classic", "clean", "fresh", "quiet", "compact",
-    "durable", "lightweight", "portable", "effective", "low cost",
-    "high quality", "aesthetic", "comforting", "peaceful", "energizing",
-    "tasty", "delicious", "productive", "inspiring", "clever", "handy",
+    "beginner", "minimalist", "cozy", "modern", "rustic", "smart", "fast",
+    "premium", "organic", "natural", "sustainable", "compact", "portable",
+    "vintage", "retro", "classic", "unique", "custom", "daily", "weekly",
+    "monthly", "annual", "local", "global", "online", "digital", "interactive",
+    "automated", "efficient", "budget", "luxury", "family", "kid friendly",
+    "eco friendly", "DIY", "homemade", "professional", "advanced", "basic",
+    "comprehensive", "practical", "fun", "cool", "stylish", "elegant",
+    "powerful", "lightweight", "durable", "heavy duty", "safe", "quiet",
+    "energetic", "peaceful", "relaxing", "inspiring", "productive", "clever",
+    "handy", "versatile", "flexible", "reliable", "innovative", "fresh",
+    "original", "seasonal", "festive", "outdoor", "indoor", "urban", "rural",
+    "coastal", "tropical", "mountain", "winter", "summer", "spring", "autumn",
+    "holiday", "weekend", "evening", "morning", "night", "quick start",
+    "step by step", "complete", "master", "low cost",
   ],
   category: [
     "coffee shops", "dinner recipes", "laptop reviews", "travel destinations",
     "workout routines", "sci-fi movies", "houseplants", "home decor ideas",
-    "python tutorials", "meal prep plans", "indie games", "desk setups",
-    "ambient music", "sourdough recipes", "hiking trails",
-    "mechanical keyboards", "noise canceling headphones", "ergonomic chairs",
-    "air purifiers", "mirrorless cameras", "book recommendations",
-    "board games", "stretching routines", "podcasts", "breakfast ideas",
-    "street photography", "backpacks", "running shoes", "smart home devices",
-    "water bottles", "standing desks", "skin care routines",
-    "smoothie recipes", "productivity apps", "coding tools", "graphic novels",
-    "lo-fi beats", "tea varieties", "camping gear", "gardening tips",
-    "organizing hacks", "baking recipes", "snack ideas",
-    "time management techniques", "instrumental music", "wall art ideas",
-    "espresso machines", "wireless earbuds", "monitors for coding",
-    "bedside lamps",
+    "python tutorials", "podcast recommendations", "hiking trails",
+    "photography tips", "gaming setups", "mechanical keyboards",
+    "acoustic guitars", "sourdough baking", "skincare routines", "board games",
+    "documentary films", "street food", "smartphone accessories",
+    "electric vehicles", "urban gardening", "book recommendations",
+    "productivity apps", "desk setups", "language learning", "indie video games",
+    "jazz music", "camping gear", "yoga practices", "meal prep",
+    "sustainable fashion", "interior design", "dog training", "art supplies",
+    "smart home devices", "retro gaming", "web development",
+    "financial planning", "meditation techniques", "running shoes",
+    "espresso machines", "craft beer", "vintage clothing", "graphic design",
+    "zero waste tips", "road trip routes", "stargazing", "woodworking",
+    "mechanical watches", "pottery", "cocktail recipes", "side hustles",
+    "home workout gear", "thrifting", "animation tools", "audiobooks",
+    "mindfulness exercises", "drone photography", "container gardening",
+    "solo travel", "digital illustration", "tea varieties",
+    "mechanical pencils", "room organization", "personal finance",
+    "acoustic panels", "smartwatches", "historical fiction",
+    "language exchange", "film photography", "calisthenics", "3d printing",
+    "camping recipes", "minimalist wardrobe", "podcasting gear",
+    "urban exploration", "stationery", "mechanical puzzles",
+    "sourdough starters", "desk lamps", "indoor plants",
+    "watercolor painting", "coffee beans", "home automation",
+    "wireless earbuds", "budget travel", "leather crafting",
+    "noise cancelling headphones", "note taking apps", "home brewing",
+    "retro consoles", "mechanical switches", "graphic novels",
+    "standing desks", "ergonomics", "air purifiers", "mirrorless cameras",
+    "smoothie recipes",
   ],
   detail: [
-    "near me", "for beginners", "on a budget", "step by step", "this week",
-    "for students", "at home", "ideas", "compared", "review", "guide",
-    "for small spaces", "from scratch", "for productivity",
-    "to play this weekend", "on streaming", "for remote work",
-    "for everyday use", "without hassle", "tips and tricks",
-    "for small apartments", "for studying", "for summer", "for winter",
-    "for long runs", "for travel", "under $50", "for college",
-    "for office use", "in 15 minutes", "for beginners 2026",
-    "with high rating", "for daily routine", "to try today", "for home gym",
-    "for night time", "for focus", "for weekend project", "free options",
-    "simple steps", "for busy days", "for relaxing", "creative list",
-    "top picks", "for beginners guide", "essential list", "budget friendly",
-    "quick setup", "for daily use", "high value",
+    "near me", "for beginners", "on a budget", "step by step", "for small spaces",
+    "for students", "for remote workers", "for busy people",
+    "with low maintenance", "for winter", "for summer", "for apartment living",
+    "for family", "for couples", "for solo travelers", "with high ratings",
+    "under $50", "under $100", "free download", "open source",
+    "step by step guide", "without experience", "with video tutorial",
+    "for kids", "for seniors", "for professionals", "with fast shipping",
+    "for home office", "for small teams", "for weekends",
+    "with natural ingredients", "eco friendly alternatives", "without sugar",
+    "gluten free options", "for productivity", "for relaxation", "for focus",
+    "with easy cleanup", "for small business", "with long battery life",
+    "for travel", "for outdoor use", "for night time", "for morning routines",
+    "with minimal tools", "for fast results", "with high reviews",
+    "for quiet spaces", "for stress relief", "for pet owners",
+    "for college dorms", "with customizable options", "for workout recovery",
+    "for creative projects", "for language practice", "for skill building",
+    "for daily use", "for special occasions", "with lifetime access",
+    "for road trips", "for rainy days", "for small budgets",
+    "for quick learning", "with high accuracy", "for beginners guide",
+    "with template", "for automated workflows", "for dark mode",
+    "for offline use", "for mobile", "for desktop", "for smart tv",
+    "for smartwatch", "with active community", "with step by step instructions",
+    "for slow mornings", "for late nights", "for holiday gifts",
+    "for party planning", "for weekend projects", "for habit building",
+    "for energy boost", "for deep work", "for mind mapping",
+    "for project management", "for content creators", "for developers",
+    "for designers", "for writers", "for artists", "for musicians",
+    "for photographers", "for gamers", "for fitness enthusiasts",
+    "for foodies", "for book lovers", "for tech lovers",
+    "for eco conscious buyers", "to try today", "budget friendly",
   ],
 };
 
@@ -270,8 +310,26 @@ function countWords(selector) {
     .filter((item) => item.length > 0).length;
 }
 
+// Abbreviate large numbers: 253,600 -> 253.6K, 2,538,000 -> 2.54M
+function formatCompact(value) {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(2)}M`;
+  }
+  if (value >= 1_000) {
+    const k = value / 1_000;
+    if (k >= 999.95) return formatCompact(Math.round(k) * 1000);
+    return `${k.toFixed(1)}K`;
+  }
+  return `${value}`;
+}
+
 // Live combo counter: [unique searches in memory] • [total combos] • [coverage]% pool
 async function updateComboStats() {
+  // Only meaningful while the Settings view is open: word bank fields are
+  // empty outside it, which would compute 1 combo and falsely trigger the
+  // 100% reset, wiping the stored pool mid-cycle.
+  if (!$(config.domElements.settingsView).hasClass("open")) return;
+
   const countField = (selector) =>
     Math.max(
       countWords(selector),
@@ -296,8 +354,8 @@ async function updateComboStats() {
     uniqueSearches = 0;
   }
 
-  $(config.domElements.comboSearches).text(uniqueSearches.toLocaleString());
-  $(config.domElements.comboTotal).text(totalCombinations.toLocaleString());
+  $(config.domElements.comboSearches).text(formatCompact(uniqueSearches));
+  $(config.domElements.comboTotal).text(formatCompact(totalCombinations));
 
   let coverage = Math.min(100, (uniqueSearches / totalCombinations) * 100);
   let coverageText;
