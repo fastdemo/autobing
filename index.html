@@ -125,44 +125,68 @@
             <span class="settings-title">Settings</span>
         </div>
         <div class="settings-content">
-            <div class="settings-description performance-section">
-                <div class="settings-subheader-row">
-                    <h2 class="settings-subheader"><i class="fa-solid fa-microchip"></i> Performance</h2>
-                    <button type="button" class="ram-saver-toggle" id="ramSaverToggle" role="switch" aria-checked="false" aria-label="Toggle RAM Saver Mode" title="RAM Saver Mode">
-                        <span class="ram-saver-thumb"></span>
+            <div class="settings-section-label">General</div>
+
+            <div class="settings-card">
+                <div class="setting-row">
+                    <div class="tile-icon"><i class="fa-solid fa-leaf"></i></div>
+                    <div class="content-col">
+                        <label class="settings-row-title" for="eco-toggle">Eco Mode</label>
+                        <span class="settings-row-subtitle">Stops loading search page DOM to save RAM and power.</span>
+                    </div>
+                    <button type="button" class="eco-toggle" id="eco-toggle" role="switch" aria-checked="false" aria-label="Toggle Eco Mode" title="Eco Mode">
+                        <span class="eco-thumb"></span>
                     </button>
                 </div>
-                <p class="settings-desc">Removes search results DOM elements during active searches to conserve RAM and CPU.</p>
             </div>
 
-            <div class="settings-description">
-                <h2 class="settings-subheader"><i class="fa-solid fa-magnifying-glass"></i> Search Queries</h2>
-                <p class="settings-desc">Edit the words used to make random searches. Words mix automatically to keep searches unique and safe from repeats.</p>
+            <div class="settings-section-label">Search Queries</div>
+            <p class="settings-section-note">Edit terms used to build unique random searches.</p>
+
+            <div class="settings-card">
+                <div class="setting-row">
+                    <div class="row-header">
+                        <div class="tile-icon"><i class="fa-solid fa-face-smile"></i></div>
+                        <label class="settings-row-title" for="moodDescriptorsField">Descriptors</label>
+                    </div>
+                    <input type="text" class="settings-word-input" id="moodDescriptorsField" spellcheck="false" placeholder="best, easy, quick, ...">
+                </div>
+                <div class="setting-row">
+                    <div class="row-header">
+                        <div class="tile-icon"><i class="fa-solid fa-tags"></i></div>
+                        <label class="settings-row-title" for="categoriesField">Categories</label>
+                    </div>
+                    <input type="text" class="settings-word-input" id="categoriesField" spellcheck="false" placeholder="coffee shops, dinner recipes, ...">
+                </div>
+                <div class="setting-row">
+                    <div class="row-header">
+                        <div class="tile-icon"><i class="fa-solid fa-circle-info"></i></div>
+                        <label class="settings-row-title" for="extraDetailsField">Extras</label>
+                    </div>
+                    <input type="text" class="settings-word-input" id="extraDetailsField" spellcheck="false" placeholder="near me, for beginners, ...">
+                </div>
             </div>
 
-            <label class="form-label settings-label" for="moodDescriptorsField"><i class="fa-solid fa-face-smile"></i> Descriptors</label>
-            <input type="text" class="settings-word-input" id="moodDescriptorsField" spellcheck="false" placeholder="best, easy, quick, ...">
+            <div class="settings-section-label">Statistics</div>
 
-            <label class="form-label settings-label" for="categoriesField"><i class="fa-solid fa-tags"></i> Categories</label>
-            <input type="text" class="settings-word-input" id="categoriesField" spellcheck="false" placeholder="coffee shops, dinner recipes, ...">
-
-            <label class="form-label settings-label" for="extraDetailsField"><i class="fa-solid fa-circle-info"></i> Extras</label>
-            <input type="text" class="settings-word-input" id="extraDetailsField" spellcheck="false" placeholder="near me, for beginners, ...">
-
-            <div class="form-label settings-label"><i class="fa-solid fa-chart-column"></i> Statistics</div>
-
-            <div class="combo-stats" id="comboStats" aria-live="polite">
-                <div class="combo-card">
-                    <span class="combo-card-value" id="comboSearches">0</span>
-                    <span class="combo-card-label">Searches</span>
-                </div>
-                <div class="combo-card">
-                    <span class="combo-card-value" id="comboTotal">0</span>
-                    <span class="combo-card-label">Combos</span>
-                </div>
-                <div class="combo-card">
-                    <span class="combo-card-value" id="comboPercent">0%</span>
-                    <span class="combo-card-label">Pool</span>
+            <div class="settings-card">
+                <div class="setting-row">
+                    <div class="content-col">
+                        <div class="combo-stats" id="comboStats" aria-live="polite">
+                            <div class="combo-card">
+                                <span class="combo-card-value" id="comboSearches">0</span>
+                                <span class="combo-card-label">Searches</span>
+                            </div>
+                            <div class="combo-card">
+                                <span class="combo-card-value" id="comboTotal">0</span>
+                                <span class="combo-card-label">Combos</span>
+                            </div>
+                            <div class="combo-card">
+                                <span class="combo-card-value" id="comboPercent">0%</span>
+                                <span class="combo-card-label">Pool</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

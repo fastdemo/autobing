@@ -20,49 +20,30 @@
 }
 
 /* ========================================
-   GLOBAL ULTRA-THIN SCROLLBARS (hover-only)
+   HIDDEN SCROLLBARS (0px layout footprint)
    ======================================== */
 
-/* WebKit Scrollbar Setup */
+/* Hide scrollbar for Chrome, Safari and Opera */
 ::-webkit-scrollbar {
-    width: 3px;
-    height: 3px;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-/* Hidden by default */
-::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    border-radius: 10px;
-    transition: background-color 0.2s ease;
-}
-
-/* Reveal on container/textarea hover */
-*:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(140, 155, 180, 0.4);
-}
-
-*:hover::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(140, 155, 180, 0.7);
-}
-
-/* Firefox hover support */
+/* Hide scrollbar for IE, Edge and Firefox */
+html,
+body,
 * {
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-}
-
-*:hover {
-    scrollbar-color: rgba(140, 155, 180, 0.4) transparent;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
 }
 
 body {
     width: 290px;
     min-width: 290px;
     max-width: 290px;
+    box-sizing: border-box;
     height: auto;
     display: flex;
     flex-direction: column;
@@ -407,67 +388,212 @@ h2 {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding-right: 2px;
 }
 
-.settings-description {
-    margin-bottom: 12px;
+/* Grouped inset card layout */
+.settings-section-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: none;
+    letter-spacing: 0.4px;
+    color: #475569;
+    margin-top: 10px !important;
+    margin-bottom: 2px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
 }
 
-.settings-subheader {
+.settings-section-label:first-child {
+    margin-top: 0 !important;
+}
+
+/* Remove uppercase forcing on section headers (Title Case) */
+.section-header,
+h3,
+h4 {
+    text-transform: none !important;
+}
+
+/* Align section headers flush with card left edges */
+.section-header,
+.section-title {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+.settings-section-note {
+    font-size: 11px;
+    line-height: 1.3 !important;
+    color: var(--text-muted);
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.settings-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    background: var(--bg-card-light);
+    border: 1px solid var(--border);
+    border-radius: 12px !important;
+    overflow: hidden;
+    margin-bottom: 8px !important;
+    padding: 3px 0 !important;
+}
+
+/* Unified row: icon + label on line 1, input breaks to line 2 at full width */
+.setting-row,
+.settings-card > div {
+    display: flex !important;
+    flex-wrap: wrap !important; /* Forces input to jump under icon/label */
+    align-items: center !important;
+    padding: 4px 12px !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Line 1: icon tile + title label in a single row */
+.row-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+.row-header .row-title,
+.row-header .settings-row-title {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.setting-row:last-child,
+.settings-card > div:last-child {
+    border-bottom: none;
+}
+
+/* Subtle dividers between stacked rows */
+body.dark-mode .setting-row {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Icon tile (20px, flush with row padding) */
+.tile-icon {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 12px;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.05);
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.tile-icon i {
+    font-size: 14px;
+    line-height: 1;
+}
+
+/* Content column: label above control, stretches full width */
+.content-col {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-width: 0 !important; /* CRITICAL: prevents input overflow clipping */
+}
+
+.content-col label {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+}
+
+/* Icon and label stay on line 1 (gap handles spacing) */
+.settings-card [class*="icon"] {
+    margin-right: 0 !important;
+}
+
+/* Force input box to line 2 across the full card width */
+.settings-card input,
+.settings-card textarea {
+    flex: 0 0 100% !important; /* Force 100% line break */
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+    margin-top: 4px !important;
+    padding: 6px 12px !important; /* symmetric 12px left/right */
+    font-size: 12px !important;
+}
+
+.settings-row-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
     line-height: 1.3;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0 0 4px 0;
-    transition: color 0.25s ease;
 }
 
-.settings-subheader i,
-.settings-subheader svg {
+.settings-row-subtitle {
     font-size: 11px;
-    width: 11px;
-    height: 11px;
-    line-height: 1;
+    line-height: 1.2;
     color: var(--text-muted);
+    margin-top: 2px;
+    margin-bottom: 4px !important;
 }
 
-.settings-desc {
-    font-size: 11px;
-    line-height: 1.5;
-    color: var(--text-muted);
-    margin: 0;
-    transition: color 0.25s ease;
+/* Compact micro-toggle (Eco Mode) */
+.eco-toggle {
+    position: relative;
+    flex-shrink: 0;
+    width: 32px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.settings-label {
-    margin-bottom: 6px;
-    color: var(--text);
+.eco-toggle .eco-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease;
 }
 
-.settings-label i,
-.settings-label svg {
-    font-size: 10px;
-    width: 10px;
-    height: 10px;
-    line-height: 1;
-    color: var(--text-muted);
+.eco-toggle:hover {
+    opacity: 0.9;
 }
 
-.settings-label:not(:first-child) {
-    margin-top: 12px;
+.eco-toggle.active {
+    background: #4a7b82;
+}
+
+.eco-toggle.active .eco-thumb {
+    transform: translateX(14px);
 }
 
 .settings-word-input {
     display: block;
     width: 100%;
+    box-sizing: border-box;
     height: 40px;
     white-space: nowrap;
     overflow-x: auto;
     resize: none;
+    margin-top: 6px;
     padding: 8px 10px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -476,14 +602,17 @@ h2 {
     font-weight: 500;
     background-color: var(--bg-card-light);
     color: #1a1a1a;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease,
-        background-color 0.25s ease, color 0.25s ease;
+    transition: border-color 0.2s ease, background-color 0.25s ease,
+        color 0.25s ease;
 }
 
 .settings-word-input:focus {
     outline: none;
     border-color: #0f172a;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.settings-word-input::placeholder {
+    color: #94a3b8;
 }
 
 /* Inherits the exact primary action button design (matches the Start button) */
@@ -492,7 +621,11 @@ h2 {
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin-top: 16px;
+    box-sizing: border-box;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
 }
 
 .settings-reset-btn.reset-success {
@@ -738,7 +871,7 @@ body.dark-mode .btn-action.btn-stop:hover {
 }
 
 /* ========================================
-   SETTINGS VIEW (dark mode)
+   SETTINGS VIEW (dark mode - navy palette)
    ======================================== */
 
 body.dark-mode .settings-view {
@@ -757,41 +890,70 @@ body.dark-mode .settings-title {
     color: #f8fafc;
 }
 
-body.dark-mode .settings-subheader {
+body.dark-mode .settings-section-label {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* High-contrast readable headings (dark mode only to preserve light theme) */
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode .section-header,
+body.dark-mode [class*="title"] {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+body.dark-mode .settings-section-note {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .settings-card {
+    background: #1f293d;
+    border-color: #334155;
+}
+
+body.dark-mode .tile-icon {
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+}
+
+body.dark-mode .settings-row-title {
     color: #f8fafc;
 }
 
-body.dark-mode .settings-subheader i,
-body.dark-mode .settings-subheader svg {
-    color: #94a3b8;
+body.dark-mode .settings-row-subtitle {
+    color: rgba(255, 255, 255, 0.5);
 }
 
-body.dark-mode .settings-desc {
-    color: #94a3b8;
+body.dark-mode .eco-toggle {
+    background: rgba(255, 255, 255, 0.12);
 }
 
-body.dark-mode .settings-label {
-    color: #8fa4c4;
-}
-
-body.dark-mode .settings-label i,
-body.dark-mode .settings-label svg {
-    color: #94a3b8;
+body.dark-mode .eco-toggle.active {
+    background: #4a7b82;
 }
 
 body.dark-mode .settings-word-input {
-    background-color: #1f293d;
+    background-color: #182032;
     border-color: #334155;
     color: #f8fafc;
 }
 
-body.dark-mode .settings-word-input:focus {
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
-}
-
 body.dark-mode .settings-word-input::placeholder {
     color: #64748b;
+}
+
+body.dark-mode .settings-card .combo-stats .combo-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .settings-card .combo-stats .combo-card-value {
+    color: #f8fafc;
+}
+
+body.dark-mode .settings-card .combo-stats .combo-card-label {
+    color: #94a3b8;
 }
 
 body.dark-mode .settings-reset-btn.reset-success {
@@ -894,6 +1056,32 @@ body.dark-mode .combo-card-label {
     color: #94a3b8;
 }
 
+/* Combo stats inside a grouped inset card (card padding supplies spacing) */
+.settings-card .combo-stats {
+    margin: 0;
+    padding: 0;
+}
+
+.settings-card .combo-stats .combo-card {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 4px !important;
+}
+
+.settings-card .combo-stats .combo-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    padding: 8px !important;
+}
+
+.settings-card .combo-stats .combo-card-value {
+    color: #1a1a1a;
+}
+
+.settings-card .combo-stats .combo-card-label {
+    color: var(--text-muted);
+}
+
 /* ========================================
    ENDLESS MODE TOGGLE (inside Searches input)
    ======================================== */
@@ -965,82 +1153,6 @@ body.dark-mode .endless-toggle.active {
 }
 
 /* ========================================
-   PERFORMANCE - RAM SAVER MODE TOGGLE
-   ======================================== */
-
-/* Header row: section title left, toggle switch right-aligned inline */
-.settings-subheader-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 0;
-}
-
-.settings-subheader-row .settings-subheader {
-    margin: 0;
-}
-
-.ram-saver-toggle {
-    position: relative;
-    flex-shrink: 0;
-    width: 36px;
-    height: 20px;
-    padding: 0;
-    border: none;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.12);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.ram-saver-toggle .ram-saver-thumb {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-    transition: transform 0.2s ease;
-}
-
-.ram-saver-toggle:hover {
-    opacity: 0.85;
-    transform: scale(1.04);
-}
-
-.ram-saver-toggle:active {
-    transform: scale(0.96);
-}
-
-.ram-saver-toggle.active {
-    background: #4a7b82;
-}
-
-.ram-saver-toggle.active .ram-saver-thumb {
-    transform: translateX(16px);
-}
-
-.ram-saver-toggle:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(74, 123, 130, 0.3);
-}
-
-body.dark-mode .ram-saver-toggle {
-    background: rgba(255, 255, 255, 0.12);
-}
-
-body.dark-mode .ram-saver-toggle:hover {
-    opacity: 0.85;
-}
-
-body.dark-mode .ram-saver-toggle.active {
-    background: #4a7b82;
-}
-
-/* ========================================
    INDETERMINATE PROGRESS (Endless mode)
    ======================================== */
 
@@ -1079,4 +1191,17 @@ body.dark-mode .progress-bar.endless {
     .progress-bar.endless {
         animation: none;
     }
+}
+
+/* ========================================
+   INPUT FOCUS - no default browser focus ring
+   ======================================== */
+
+*:focus,
+*:focus-visible,
+input:focus,
+textarea:focus,
+button:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }

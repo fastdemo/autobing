@@ -109,7 +109,7 @@ function setEndlessUI(enabled) {
   }
 }
 
-// RAM Saver Mode toggle (hides heavy Bing DOM while a batch is running)
+// Eco Mode toggle (hides heavy Bing DOM while a batch is running)
 $(config.domElements.ramSaverToggle).on("click", () => {
   const enabled = !$(config.domElements.ramSaverToggle).hasClass("active");
   setRamSaverUI(enabled);
@@ -282,6 +282,13 @@ function openSettings() {
 
 function closeSettings() {
   $(config.domElements.settingsView).removeClass("open").attr("aria-hidden", "true");
+  // Return focus to the Settings trigger: a focused descendant must not
+  // remain inside an aria-hidden (and now hidden) view, otherwise Chrome
+  // blocks the aria-hidden with "focused element inside aria-hidden ancestor"
+  const viewEl = document.querySelector(config.domElements.settingsView);
+  if (viewEl && viewEl.contains(document.activeElement)) {
+    $(config.domElements.settingsToggle).trigger("focus");
+  }
 }
 
 // Populate the word bank textareas from storage (fall back to presets)
