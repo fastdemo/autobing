@@ -320,6 +320,18 @@ h2 {
    ======================================== */
 
 .settings-view {
+    --settings-space-0: 0px;
+    --settings-space-1: 4px;
+    --settings-space-2: 8px;
+    --settings-space-3: 12px;
+    --settings-space-4: 16px;
+    --settings-space-5: 24px;
+    --settings-space-6: 32px;
+    --content-left-inset: var(--settings-space-2);
+    --settings-card-padding: var(--content-left-inset);
+    --settings-icon-size: 18px;
+    --settings-content-gap: var(--settings-space-2);
+    --settings-section-gap: var(--settings-space-4);
     display: none;
     position: fixed;
     top: 0;
@@ -329,7 +341,7 @@ h2 {
     z-index: 1100;
     flex-direction: column;
     background-color: var(--bg-soft);
-    padding: 14px 16px 16px;
+    padding: var(--settings-space-4);
     overflow: hidden;
     transition: background-color 0.25s ease;
 }
@@ -343,17 +355,17 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 12px;
+    padding-bottom: var(--settings-space-3);
     flex-shrink: 0;
 }
 
 .settings-back {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--settings-space-1);
     background: transparent;
     border: none;
-    padding: 4px 0;
+    padding: var(--settings-space-1) var(--settings-space-0);
     font-size: 12.5px;
     line-height: 1;
     font-weight: 600;
@@ -387,7 +399,11 @@ h2 {
 .settings-content {
     flex: 1;
     min-height: 0;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Grouped inset card layout */
@@ -397,15 +413,14 @@ h2 {
     text-transform: none;
     letter-spacing: 0.4px;
     color: #475569;
-    margin-top: 10px !important;
-    margin-bottom: 2px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
+    margin: var(--settings-section-gap) var(--settings-space-0)
+        var(--settings-content-gap) !important;
+    margin-left: calc(-1 * var(--content-left-inset)) !important;
+    padding-left: var(--content-left-inset);
 }
 
 .settings-section-label:first-child {
-    margin-top: 0 !important;
+    margin-top: var(--settings-space-0) !important;
 }
 
 /* Remove uppercase forcing on section headers (Title Case) */
@@ -426,23 +441,27 @@ h4 {
     font-size: 11px;
     line-height: 1.3 !important;
     color: var(--text-muted);
-    margin-top: 0 !important;
-    margin-bottom: 8px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: var(--settings-space-0) var(--settings-space-0)
+        var(--settings-content-gap) !important;
+    padding-left: var(--settings-space-0);
 }
 
 .settings-card {
-    width: 100%;
-    box-sizing: border-box;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: var(--settings-space-0) !important;
     background: var(--bg-card-light);
     border: 1px solid var(--border);
     border-radius: 12px !important;
     overflow: hidden;
-    margin-bottom: 8px !important;
-    padding: 3px 0 !important;
+    padding: var(--settings-card-padding) !important;
+}
+
+.settings-card:has(.settings-word-input) {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: var(--settings-space-0) !important;
 }
 
 /* Unified row: icon + label on line 1, input breaks to line 2 at full width */
@@ -451,26 +470,32 @@ h4 {
     display: flex !important;
     flex-wrap: wrap !important; /* Forces input to jump under icon/label */
     align-items: center !important;
-    padding: 4px 12px !important;
-    gap: 8px !important;
+    padding: var(--settings-space-0) var(--settings-space-0)
+        var(--settings-content-gap) !important;
+    gap: var(--settings-content-gap) !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.setting-row + .setting-row {
+    padding-top: var(--settings-content-gap) !important;
 }
 
 /* Line 1: icon tile + title label in a single row */
 .row-header {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: var(--settings-content-gap) !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
+    margin-top: var(--settings-space-0) !important;
 }
 
 .row-header .row-title,
 .row-header .settings-row-title {
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: var(--settings-space-0) !important;
+    padding: var(--settings-space-0) !important;
 }
 
 .setting-row:last-child,
@@ -478,27 +503,26 @@ h4 {
     border-bottom: none;
 }
 
-/* Subtle dividers between stacked rows */
+/* Subtle dividers between stacked rows (softer than card border) */
 body.dark-mode .setting-row {
-    border-bottom-color: rgba(255, 255, 255, 0.05);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Icon tile (20px, flush with row padding) */
+/* Icon wrapper: uniform across all rows (bare, no background box) */
 .tile-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
-    background: rgba(15, 23, 42, 0.05);
+    width: var(--settings-icon-size);
+    height: var(--settings-icon-size);
     flex-shrink: 0;
     color: var(--text-muted);
 }
 
 .tile-icon i {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1;
+    transform: translateY(-1px);
 }
 
 /* Content column: label above control, stretches full width */
@@ -511,13 +535,29 @@ body.dark-mode .setting-row {
 
 .content-col label {
     margin: 0 !important;
-    padding: 0 !important;
+    padding: var(--settings-space-0) !important;
     text-align: left !important;
+}
+
+/* Eco row: title follows the shared card inset */
+.settings-card:has(.eco-toggle) .content-col {
+    margin-top: var(--settings-space-0);
+}
+
+/* Eco icon: same top-left relationship as the search-row icons */
+.settings-card:has(.eco-toggle) .tile-icon {
+    align-self: flex-start;
+    margin-top: var(--settings-space-0);
+}
+
+.settings-card:has(.eco-toggle) .setting-row,
+.settings-card:has(.combo-stats) .setting-row {
+    padding-bottom: var(--settings-space-0) !important;
 }
 
 /* Icon and label stay on line 1 (gap handles spacing) */
 .settings-card [class*="icon"] {
-    margin-right: 0 !important;
+    margin-right: var(--settings-space-0) !important;
 }
 
 /* Force input box to line 2 across the full card width */
@@ -527,9 +567,10 @@ body.dark-mode .setting-row {
     width: 100% !important;
     max-width: none !important;
     box-sizing: border-box !important;
-    margin-top: 4px !important;
-    padding: 6px 12px !important; /* symmetric 12px left/right */
-    font-size: 12px !important;
+    margin: var(--settings-space-0) var(--settings-space-0)
+        var(--settings-space-0) !important;
+    padding: var(--settings-content-gap) !important;
+    font-size: 13px !important;
 }
 
 .settings-row-title {
@@ -541,10 +582,11 @@ body.dark-mode .setting-row {
 
 .settings-row-subtitle {
     font-size: 11px;
-    line-height: 1.2;
+    line-height: 1.3;
     color: var(--text-muted);
-    margin-top: 2px;
-    margin-bottom: 4px !important;
+    margin: var(--settings-space-1) var(--settings-space-0)
+        var(--settings-content-gap) !important;
+    margin-left: var(--settings-space-0) !important;
 }
 
 /* Compact micro-toggle (Eco Mode) */
@@ -553,7 +595,7 @@ body.dark-mode .setting-row {
     flex-shrink: 0;
     width: 32px;
     height: 18px;
-    padding: 0;
+    padding: var(--settings-space-0);
     border: none;
     border-radius: 999px;
     background: rgba(0, 0, 0, 0.12);
@@ -589,18 +631,17 @@ body.dark-mode .setting-row {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    height: 40px;
-    white-space: nowrap;
+    height: 36px;
     overflow-x: auto;
     resize: none;
-    margin-top: 6px;
-    padding: 8px 10px;
+    margin-top: var(--settings-space-0);
+    padding: var(--settings-content-gap);
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.45;
     font-weight: 500;
-    background-color: var(--bg-card-light);
+    background-color: #ffffff;
     color: #1a1a1a;
     transition: border-color 0.2s ease, background-color 0.25s ease,
         color 0.25s ease;
@@ -622,10 +663,8 @@ body.dark-mode .setting-row {
     justify-content: center;
     width: 100%;
     box-sizing: border-box;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    margin-top: 8px !important;
-    margin-bottom: 8px !important;
+    margin: var(--settings-section-gap) var(--settings-space-0)
+        var(--settings-space-0) !important;
 }
 
 .settings-reset-btn.reset-success {
@@ -913,7 +952,6 @@ body.dark-mode .settings-card {
 }
 
 body.dark-mode .tile-icon {
-    background: rgba(255, 255, 255, 0.08);
     color: #94a3b8;
 }
 
@@ -934,13 +972,17 @@ body.dark-mode .eco-toggle.active {
 }
 
 body.dark-mode .settings-word-input {
-    background-color: #182032;
-    border-color: #334155;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
     color: #f8fafc;
 }
 
 body.dark-mode .settings-word-input::placeholder {
     color: #64748b;
+}
+
+body.dark-mode .settings-word-input:focus {
+    border-color: #60a5fa;
 }
 
 body.dark-mode .settings-card .combo-stats .combo-card {
@@ -1058,20 +1100,17 @@ body.dark-mode .combo-card-label {
 
 /* Combo stats inside a grouped inset card (card padding supplies spacing) */
 .settings-card .combo-stats {
-    margin: 0;
-    padding: 0;
+    gap: var(--settings-content-gap);
+    margin: var(--settings-space-0);
+    padding: var(--settings-space-0);
 }
 
 .settings-card .combo-stats .combo-card {
-    flex: 1;
     min-width: 0;
-    padding: 6px 4px !important;
-}
-
-.settings-card .combo-stats .combo-card {
+    gap: var(--settings-space-1);
     background: #ffffff;
     border-color: #e2e8f0;
-    padding: 8px !important;
+    padding: var(--settings-card-padding) !important;
 }
 
 .settings-card .combo-stats .combo-card-value {
