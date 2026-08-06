@@ -329,6 +329,7 @@ h2 {
     --settings-space-6: 32px;
     --content-left-inset: var(--settings-space-2);
     --settings-card-padding: var(--content-left-inset);
+    --card-padding-y: var(--settings-card-padding);
     --settings-icon-size: 18px;
     --settings-content-gap: var(--settings-space-2);
     --settings-section-gap: var(--settings-space-4);
@@ -455,7 +456,7 @@ h4 {
     border: 1px solid var(--border);
     border-radius: 12px !important;
     overflow: hidden;
-    padding: var(--settings-card-padding) !important;
+    padding: var(--card-padding-y) var(--settings-card-padding) !important;
 }
 
 .settings-card:has(.settings-word-input) {
@@ -553,6 +554,10 @@ body.dark-mode .setting-row {
 .settings-card:has(.eco-toggle) .setting-row,
 .settings-card:has(.combo-stats) .setting-row {
     padding-bottom: var(--settings-space-0) !important;
+}
+
+.settings-card:has(.eco-toggle) .settings-row-subtitle {
+    margin-bottom: var(--settings-space-0) !important;
 }
 
 /* Icon and label stay on line 1 (gap handles spacing) */
