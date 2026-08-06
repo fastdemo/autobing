@@ -6,40 +6,134 @@
 // the batch stops or finishes, everything is restored immediately.
 
 const STYLE_ID = "autobing-ram-saver-style";
+const FAVICON_ID = "autobing-ram-saver-favicon";
+const AUTOBING_TITLE = "Autobing";
+const EXTENSION_FAVICON_PATH = "img/icon128.png";
+const RAM_SAVER_CSS =
+  "div#b_content { display: none !important; }";
 
-// Heavy elements on a Bing search page that can be safely hidden while a
-// batch is running. The search bar (#b_header / #sb_form) is intentionally
-// kept so queries still submit normally.
-const RAM_SAVER_CSS = [
-  "#b_content",
-  "#b_tween",
-  "#b_results",
-  "#b_sidebarmain",
-  "#b_sidebar",
-  "#b_sb",
-  "#b_context",
-  "#b_footer",
-  "#b_notification",
-  "aside",
-  '[role="complementary"]',
-  ".b_ad",
-  ".b_promote",
-  ".b_ans",
-].join(", ") + " { display: none !important; }";
+let faviconObserver = null;
+let originalFavicons = [];
+let titleObserver = null;
+let originalPageTitle = null;
+let settingTitle = false;
 
 function injectRamSaver() {
-  if (document.getElementById(STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = RAM_SAVER_CSS;
-  (document.head || document.documentElement).appendChild(style);
-  document.documentElement.classList.add("autobing-ram-saver");
+  if (!document.getElementById(STYLE_ID)) {
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = RAM_SAVER_CSS;
+    (document.head || document.documentElement).appendChild(style);
+  }
+  injectExtensionFavicon();
+  injectExtensionTitle();
 }
 
 function removeRamSaver() {
   const style = document.getElementById(STYLE_ID);
   if (style) style.remove();
-  document.documentElement.classList.remove("autobing-ram-saver");
+  removeExtensionFavicon();
+  removeExtensionTitle();
+}
+
+function injectExtensionTitle() {
+  if (originalPageTitle === null && document.title !== AUTOBING_TITLE) {
+    originalPageTitle = document.title;
+  }
+
+  setExtensionTitle();
+
+  if (!titleObserver && document.head) {
+    titleObserver = new MutationObserver(() => {
+      if (!settingTitle && document.title !== AUTOBING_TITLE) {
+        if (originalPageTitle === null) originalPageTitle = document.title;
+        setExtensionTitle();
+      }
+    });
+    titleObserver.observe(document.head, { childList: true, subtree: true });
+  }
+}
+
+function setExtensionTitle() {
+  settingTitle = true;
+  document.title = AUTOBING_TITLE;
+  settingTitle = false;
+}
+
+function removeExtensionTitle() {
+  if (titleObserver) {
+    titleObserver.disconnect();
+    titleObserver = null;
+  }
+  if (originalPageTitle !== null) document.title = originalPageTitle;
+  originalPageTitle = null;
+}
+
+function injectExtensionFavicon() {
+  const head = document.head;
+  if (!head) {
+    document.addEventListener("DOMContentLoaded", injectExtensionFavicon, {
+      once: true,
+    });
+    return;
+  }
+
+  if (!document.getElementById(FAVICON_ID) && !originalFavicons.length) {
+    Array.from(
+      head.querySelectorAll('link[rel~="icon"], link[rel="shortcut icon"]'),
+    ).forEach((link) => {
+      originalFavicons.push(link);
+      link.remove();
+    });
+  }
+
+  let favicon = document.getElementById(FAVICON_ID);
+  if (!favicon) {
+    favicon = document.createElement("link");
+    favicon.id = FAVICON_ID;
+    favicon.rel = "icon";
+    favicon.type = "image/png";
+    favicon.sizes = "128x128";
+    favicon.href = chrome.runtime.getURL(`${EXTENSION_FAVICON_PATH}?v=1`);
+    head.appendChild(favicon);
+  }
+
+  if (!faviconObserver) {
+    faviconObserver = new MutationObserver((records) => {
+      records.forEach((record) => {
+        Array.from(record.addedNodes).forEach((node) => {
+          if (
+            node === favicon ||
+            node.nodeType !== Node.ELEMENT_NODE ||
+            !node.matches?.('link[rel~="icon"], link[rel="shortcut icon"]')
+          ) {
+            return;
+          }
+          originalFavicons.push(node);
+          node.remove();
+        });
+      });
+    });
+    faviconObserver.observe(head, { childList: true });
+  }
+}
+
+function removeExtensionFavicon() {
+  if (faviconObserver) {
+    faviconObserver.disconnect();
+    faviconObserver = null;
+  }
+  const favicon = document.getElementById(FAVICON_ID);
+  if (favicon) favicon.remove();
+
+  if (document.head && originalFavicons.length) {
+    originalFavicons.forEach((originalFavicon) => {
+      if (!originalFavicon.isConnected) {
+        document.head.appendChild(originalFavicon);
+      }
+    });
+  }
+  originalFavicons = [];
 }
 
 // The page should be blanked only while a batch is actively running

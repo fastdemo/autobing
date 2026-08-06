@@ -1,6 +1,6 @@
 {
   "name": "Autobing",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Automating your Bing searches so you don't have to! (@fastdemo)",
   "manifest_version": 3,
   "action": {
@@ -22,6 +22,12 @@
       "matches": ["*://*.bing.com/*"],
       "js": ["js/content.js"],
       "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["img/icon128.png"],
+      "matches": ["*://*.bing.com/*"]
     }
   ]
 }
