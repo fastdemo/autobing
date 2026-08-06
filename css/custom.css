@@ -330,6 +330,7 @@ h2 {
     --content-left-inset: var(--settings-space-2);
     --settings-card-padding: var(--content-left-inset);
     --card-padding-y: var(--settings-card-padding);
+    --settings-input-radius: 8px;
     --settings-icon-size: 18px;
     --settings-content-gap: var(--settings-space-2);
     --settings-section-gap: var(--settings-space-4);
@@ -415,7 +416,7 @@ h2 {
     letter-spacing: 0.4px;
     color: #475569;
     margin: var(--settings-section-gap) var(--settings-space-0)
-        var(--settings-content-gap) !important;
+        var(--settings-space-1) !important;
     margin-left: calc(-1 * var(--content-left-inset)) !important;
     padding-left: var(--content-left-inset);
 }
@@ -591,7 +592,12 @@ body.dark-mode .setting-row {
     color: var(--text-muted);
     margin: var(--settings-space-1) var(--settings-space-0)
         var(--settings-content-gap) !important;
-    margin-left: var(--settings-space-0) !important;
+    margin-left: calc(
+        -1 * (
+            var(--settings-icon-size) +
+            var(--settings-content-gap)
+        )
+    ) !important;
 }
 
 /* Compact micro-toggle (Eco Mode) */
@@ -642,7 +648,7 @@ body.dark-mode .setting-row {
     margin-top: var(--settings-space-0);
     padding: var(--settings-content-gap);
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: var(--settings-input-radius) !important;
     font-size: 13px;
     line-height: 1.45;
     font-weight: 500;
