@@ -675,6 +675,14 @@ async function stopSearches() {
   await chrome.storage.local.remove("searchState");
 }
 
+// Stop an active run when its target tab is closed.
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  await loadState();
+  if (searchState.isRunning && searchState.tabId === tabId) {
+    await stopSearches();
+  }
+});
+
 // Start searches
 async function startSearches(type, settings) {
   if (searchState.isRunning) {
