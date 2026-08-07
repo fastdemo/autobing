@@ -799,6 +799,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Indicates async response
   }
 
+  if (message.type === "getRamSaverState") {
+    loadState().then(() => {
+      sendResponse({
+        active:
+          ramSaverEnabled === true &&
+          searchState.isRunning === true &&
+          searchState.tabId === sender.tab?.id,
+      });
+    });
+    return true;
+  }
+
   if (message.type === "resetPool") {
     // Re-read word lists and rebuild a fresh shuffled pool from index 0
     loadWordBanks().then(() => {
@@ -820,6 +832,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
   if (changes.ramSaverEnabled) {
     ramSaverEnabled = changes.ramSaverEnabled.newValue === true;
+    if (searchState.isRunning && searchState.tabId) {
+      chrome.tabs
+        .sendMessage(searchState.tabId, {
+          type: ramSaverEnabled ? "ramSaverOn" : "ramSaverOff",
+        })
+        .catch(() => {});
+    }
   }
 });
 
