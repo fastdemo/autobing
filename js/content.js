@@ -7,7 +7,7 @@
 
 const STYLE_ID = "autobing-ram-saver-style";
 const FAVICON_ID = "autobing-ram-saver-favicon";
-const AUTOBING_TITLE = "Autobing";
+const AUTOBING_TITLE_PREFIX = "Autobing / ";
 const EXTENSION_FAVICON_PATH = "img/icon128.png";
 const RAM_SAVER_CSS =
   "div#b_content { display: none !important; }";
@@ -37,7 +37,7 @@ function removeRamSaver() {
 }
 
 function injectExtensionTitle() {
-  if (originalPageTitle === null && document.title !== AUTOBING_TITLE) {
+  if (originalPageTitle === null && !document.title.startsWith(AUTOBING_TITLE_PREFIX)) {
     originalPageTitle = document.title;
   }
 
@@ -45,7 +45,8 @@ function injectExtensionTitle() {
 
   if (!titleObserver && document.head) {
     titleObserver = new MutationObserver(() => {
-      if (!settingTitle && document.title !== AUTOBING_TITLE) {
+      const expectedTitle = `${AUTOBING_TITLE_PREFIX}${originalPageTitle || ""}`;
+      if (!settingTitle && document.title !== expectedTitle) {
         if (originalPageTitle === null) originalPageTitle = document.title;
         setExtensionTitle();
       }
@@ -55,8 +56,9 @@ function injectExtensionTitle() {
 }
 
 function setExtensionTitle() {
+  const originalTitle = originalPageTitle || document.title;
   settingTitle = true;
-  document.title = AUTOBING_TITLE;
+  document.title = `${AUTOBING_TITLE_PREFIX}${originalTitle}`;
   settingTitle = false;
 }
 
@@ -136,17 +138,13 @@ function removeExtensionFavicon() {
   originalFavicons = [];
 }
 
-// The page should be blanked only while a batch is actively running
-function shouldBeActive(ramSaverEnabled, searchState) {
-  return ramSaverEnabled === true && searchState?.isRunning === true;
-}
-
 async function syncFromStorage() {
-  const result = await chrome.storage.local.get([
-    "ramSaverEnabled",
-    "searchState",
-  ]);
-  if (shouldBeActive(result.ramSaverEnabled, result.searchState)) {
+  const state = await new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "getRamSaverState" }, (response) => {
+      resolve(response || { active: false });
+    });
+  });
+  if (state.active === true) {
     injectRamSaver();
   } else {
     removeRamSaver();
@@ -156,8 +154,8 @@ async function syncFromStorage() {
 // document_start: hide before the heavy DOM renders whenever possible
 syncFromStorage();
 
-// Revert instantly when the run stops or completes (searchState is removed),
-// and apply instantly when the toggle flips or a batch starts
+// Re-check from the background worker so every page gets only its own tab's
+// state rather than applying the global search state to every tab.
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   if (changes.ramSaverEnabled || changes.searchState) {
