@@ -13,6 +13,8 @@
     --text-primary: #1f2430;
     --text-secondary: #8087a0;
     --accent: #3a5f8a;
+    --accent-highlight: #6f91b6;
+    --accent-teal: #5e9fae;
     --accent-contrast-text: #ffffff;
     --icon: #3a5f8a;
 }
@@ -216,11 +218,13 @@ h2 {
 .btn-action.btn-stop {
     background-color: var(--accent);
     border-color: var(--accent);
+    color: var(--accent-contrast-text);
 }
 
 .btn-action.btn-stop:hover {
     background-color: color-mix(in srgb, var(--accent) 88%, var(--bg));
     border-color: color-mix(in srgb, var(--accent) 88%, var(--bg));
+    color: var(--accent-contrast-text);
 }
 
 .btn-action.btn-stop:focus,
@@ -818,6 +822,8 @@ body.dark-mode {
     --text-primary: #eef0f5;
     --text-secondary: #9198ac;
     --accent: #7fa8d9;
+    --accent-highlight: #a9c7e8;
+    --accent-teal: #73b7c0;
     --accent-contrast-text: #1a1f2b;
     --icon: #7fa8d9;
     background-color: var(--bg);
@@ -1217,9 +1223,10 @@ body.dark-mode .endless-toggle.active {
     width: 100% !important;
     background: linear-gradient(
         90deg,
-        #78C1C8,
-        #8EB4E3,
-        #78C1C8
+        var(--accent),
+        var(--accent-teal),
+        var(--accent-highlight),
+        var(--accent)
     );
     background-size: 200% 100%;
     animation: endless-slide 1.6s linear infinite;
@@ -1228,9 +1235,10 @@ body.dark-mode .endless-toggle.active {
 body.dark-mode .progress-bar.endless {
     background: linear-gradient(
         90deg,
-        #78C1C8,
-        #8EB4E3,
-        #78C1C8
+        var(--accent),
+        var(--accent-teal),
+        var(--accent-highlight),
+        var(--accent)
     );
     background-size: 200% 100%;
 }
