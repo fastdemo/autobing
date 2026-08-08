@@ -257,6 +257,7 @@ let searchState = {
   pendingResultVisit: false,
   resultVisitScheduled: false,
   visitTabId: null,
+  visitTabIds: [],
   visitCloseScheduled: false,
   completionPending: false,
 };
@@ -322,9 +323,7 @@ async function scheduleResultVisit() {
 
 async function finishResultVisit() {
   if (!searchState.isRunning) return;
-  if (searchState.visitTabId) {
-    chrome.tabs.remove(searchState.visitTabId).catch(() => {});
-  }
+  closeVisitTab();
   searchState.pendingResultVisit = false;
   searchState.resultVisitScheduled = false;
   searchState.visitTabId = null;
@@ -333,10 +332,11 @@ async function finishResultVisit() {
 }
 
 function closeVisitTab() {
-  if (searchState.visitTabId) {
-    chrome.tabs.remove(searchState.visitTabId).catch(() => {});
-  }
+  const tabIds = new Set(searchState.visitTabIds || []);
+  if (searchState.visitTabId) tabIds.add(searchState.visitTabId);
+  tabIds.forEach((tabId) => chrome.tabs.remove(tabId).catch(() => {}));
   searchState.visitTabId = null;
+  searchState.visitTabIds = [];
   searchState.visitCloseScheduled = false;
 }
 
@@ -573,7 +573,7 @@ async function performSingleSearch() {
       : 0;
 
   const shouldVisitResult =
-    searchState.visitResults === true && searchState.currentSearch % 10 === 0;
+    searchState.visitResults === true && searchState.currentSearch % 5 === 0;
 
   if (shouldVisitResult) {
     // Let the target page report when its results have loaded before waiting
@@ -691,6 +691,7 @@ async function completeSearches() {
     pendingResultVisit: false,
     resultVisitScheduled: false,
     visitTabId: null,
+    visitTabIds: [],
     visitCloseScheduled: false,
     completionPending: false,
   };
@@ -738,6 +739,7 @@ async function stopSearches() {
     pendingResultVisit: false,
     resultVisitScheduled: false,
     visitTabId: null,
+    visitTabIds: [],
     visitCloseScheduled: false,
     completionPending: false,
   };
@@ -758,6 +760,9 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   if (searchState.visitTabId === tabId) {
     searchState.visitTabId = null;
   }
+  searchState.visitTabIds = (searchState.visitTabIds || []).filter(
+    (id) => id !== tabId,
+  );
 });
 
 chrome.tabs.onCreated.addListener(async (tab) => {
@@ -771,6 +776,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   }
 
   searchState.visitTabId = tab.id;
+  searchState.visitTabIds = [...new Set([...(searchState.visitTabIds || []), tab.id])];
   await saveState();
   chrome.tabs
     .sendMessage(tab.id, {
@@ -819,6 +825,7 @@ async function startSearches(type, settings) {
     pendingResultVisit: false,
     resultVisitScheduled: false,
     visitTabId: null,
+    visitTabIds: [],
     visitCloseScheduled: false,
     completionPending: false,
   };
@@ -857,14 +864,14 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
           searchState.visitCloseScheduled = true;
           await saveState();
           chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
-            delayInMinutes: 5 / 60,
+            delayInMinutes: 10 / 60,
           });
         })
         .catch(async () => {
           searchState.visitCloseScheduled = true;
           await saveState();
           chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
-            delayInMinutes: 5 / 60,
+            delayInMinutes: 10 / 60,
           });
         });
     }
@@ -951,7 +958,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     loadState().then(() => {
       const tabId = sender.tab?.id;
       const isRunTab = searchState.tabId === tabId;
-      const isVisitTab = searchState.visitTabId === tabId;
+      const isVisitTab =
+        searchState.visitTabId === tabId ||
+        (searchState.visitTabIds || []).includes(tabId);
       sendResponse({
         active: ramSaverEnabled === true && searchState.isRunning && isRunTab,
         branded: searchState.isRunning && (isRunTab || isVisitTab),
