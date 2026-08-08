@@ -7,19 +7,18 @@ Automate Bing search sessions from a lightweight Chrome popup.
 
 Autobing builds varied Bing queries, runs them in the active tab, and keeps the session visible with live progress and statistics.
 
+## Image
+
+![Autobing product thumbnail](AutobingThumb.png)
+
 ## Features
 
 - **Automated search sessions**: Run a fixed batch or use Endless Mode for continuous searching.
-- **Flexible search modes**: Configure desktop, mobile, or combined desktop/mobile sessions.
 - **Natural query generation**: Combines descriptors, categories, and extra details into varied queries without repeating combinations during a pool cycle.
 - **Configurable timing**: Set minimum and maximum delays between searches in milliseconds.
 - **Visit Results**: Optionally opens one random result from the top five after every five searches, keeps the visit tab branded, and closes it after a short delay.
 - **Eco Mode**: Temporarily hides heavy Bing result-page content while a session runs to reduce page overhead. It is scoped to the active search tab.
-- **Target-tab isolation**: Search automation, Eco Mode, favicon changes, and tab-title changes stay scoped to the session's target tab.
-- **Live session feedback**: Track elapsed time, search count, percentage, progress, query-pool statistics, and Endless Mode state.
 - **Editable word banks**: Customize descriptors, categories, and extra details from Settings with saved preferences.
-- **Light and dark themes**: Switch themes from the popup footer.
-- **Restorable settings**: Restore the default word banks, timing values, and saved preferences from Settings.
 
 ## Install
 
@@ -52,10 +51,6 @@ Settings are grouped into three areas:
 - **Statistics**: Current searches, available combinations, and pool usage.
 
 Preferences are stored locally by the extension and can be restored from the Settings view.
-
-## Image
-
-![Autobing product thumbnail](AutobingThumb.png)
 
 ## License
 
