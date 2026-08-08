@@ -636,11 +636,12 @@ body.dark-mode .setting-row {
 
 .eco-toggle.active .eco-thumb {
     margin-left: 0;
+    margin-right: 2px;
 }
 
 /* Shared three-column layout for the toggle card. */
 .settings-toggle-card {
-    padding: var(--card-padding-y) var(--settings-card-padding) !important;
+    padding: var(--settings-space-0) var(--settings-card-padding) !important;
 }
 
 .settings-toggle-card .setting-row {
@@ -697,6 +698,11 @@ body.dark-mode .setting-row {
     row-gap: var(--settings-space-2) !important;
     padding: var(--settings-space-2) var(--settings-space-0) !important;
     border-bottom: none;
+}
+
+.settings-query-card {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
 }
 
 .settings-query-card .setting-row + .setting-row {
