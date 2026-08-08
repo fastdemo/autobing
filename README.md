@@ -3,10 +3,6 @@
 
 Automate Bing search sessions from a lightweight Chrome popup.
 
-## Image
-
-![Autobing product thumbnail](AutobingThumb.png)
-
 ## Highlights
 
 Autobing builds varied Bing queries, runs them in the active tab, and keeps the session visible with live progress and statistics.
@@ -56,6 +52,10 @@ Settings are grouped into three areas:
 - **Statistics**: Current searches, available combinations, and pool usage.
 
 Preferences are stored locally by the extension and can be restored from the Settings view.
+
+## Image
+
+![Autobing product thumbnail](AutobingThumb.png)
 
 ## License
 
