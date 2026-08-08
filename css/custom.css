@@ -664,15 +664,57 @@ body.dark-mode .setting-row {
     grid-area: content;
 }
 
+.settings-toggle-card .setting-control {
+    grid-area: toggle;
+    justify-self: end;
+    margin: var(--settings-space-0);
+}
+
 .settings-toggle-card .settings-row-subtitle {
     margin: var(--settings-space-1) var(--settings-space-0)
         var(--settings-space-0) !important;
 }
 
 .settings-toggle-card .eco-toggle {
-    grid-area: toggle;
-    justify-self: end;
     margin: var(--settings-space-0);
+}
+
+.settings-query-card .setting-row {
+    display: grid !important;
+    grid-template-columns: var(--settings-icon-size) minmax(0, 1fr);
+    grid-template-areas:
+        "icon content"
+        "control control";
+    align-items: start !important;
+    flex-wrap: nowrap !important;
+    column-gap: var(--settings-content-gap) !important;
+    row-gap: var(--settings-space-2) !important;
+    padding: var(--settings-space-2) var(--settings-space-0) !important;
+    border-bottom: none;
+}
+
+.settings-query-card .setting-row + .setting-row {
+    border-top: 1px solid var(--border);
+}
+
+.settings-query-card .tile-icon {
+    grid-area: icon;
+    margin: var(--settings-space-0);
+}
+
+.settings-query-card .content-col {
+    grid-area: content;
+}
+
+.settings-query-card .setting-control {
+    grid-area: control;
+    min-width: 0;
+    width: 100%;
+}
+
+.settings-query-card .settings-word-input {
+    flex: none !important;
+    margin: var(--settings-space-0) !important;
 }
 
 .settings-word-input {
