@@ -18,33 +18,48 @@ let titleObserver = null;
 let originalPageTitle = null;
 let settingTitle = false;
 
-function injectRamSaver() {
+function injectEcoModeStyle() {
   if (!document.getElementById(STYLE_ID)) {
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = RAM_SAVER_CSS;
     (document.head || document.documentElement).appendChild(style);
   }
+}
+
+function removeEcoModeStyle() {
+  const style = document.getElementById(STYLE_ID);
+  if (style) style.remove();
+}
+
+function injectRamSaver() {
+  injectEcoModeStyle();
   injectExtensionFavicon();
   injectExtensionTitle();
 }
 
 function removeRamSaver() {
-  const style = document.getElementById(STYLE_ID);
-  if (style) style.remove();
+  removeEcoModeStyle();
   removeExtensionFavicon();
   removeExtensionTitle();
 }
 
 function injectExtensionTitle() {
   if (originalPageTitle === null && !document.title.startsWith(AUTOBING_TITLE_PREFIX)) {
-    originalPageTitle = document.title;
+    if (document.title) originalPageTitle = document.title;
   }
 
-  setExtensionTitle();
+  if (originalPageTitle !== null) setExtensionTitle();
 
   if (!titleObserver && document.head) {
     titleObserver = new MutationObserver(() => {
+      if (originalPageTitle === null) {
+        if (document.title && !document.title.startsWith(AUTOBING_TITLE_PREFIX)) {
+          originalPageTitle = document.title;
+          setExtensionTitle();
+        }
+        return;
+      }
       const expectedTitle = `${AUTOBING_TITLE_PREFIX}${originalPageTitle || ""}`;
       if (!settingTitle && document.title !== expectedTitle) {
         if (originalPageTitle === null) originalPageTitle = document.title;
@@ -138,17 +153,78 @@ function removeExtensionFavicon() {
   originalFavicons = [];
 }
 
+function waitForTopResults(timeoutMs = 15000) {
+  const getResults = () => {
+    const selectors = [
+      "li.b_algo h2 a[href]",
+      "li.b_algo a[href]",
+      "#b_results li.b_algo a[href]",
+    ];
+    const seen = new Set();
+    return selectors
+      .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+      .filter((link) => {
+        if (seen.has(link) || !link.href) return false;
+        seen.add(link);
+        return true;
+      })
+      .slice(0, 5);
+  };
+
+  return new Promise((resolve) => {
+    const initialResults = getResults();
+    if (initialResults.length) {
+      resolve(initialResults);
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const results = getResults();
+      if (results.length) {
+        observer.disconnect();
+        clearTimeout(timeout);
+        resolve(results);
+      }
+    });
+    const timeout = setTimeout(() => {
+      observer.disconnect();
+      resolve(getResults());
+    }, timeoutMs);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  });
+}
+
+async function visitRandomSearchResult() {
+  const ramSaverStyle = document.getElementById(STYLE_ID);
+  const savedStyleText = ramSaverStyle?.textContent;
+  if (ramSaverStyle) ramSaverStyle.textContent = "";
+
+  try {
+    const results = await waitForTopResults();
+    if (!results.length) return { clicked: false };
+    const result = results[Math.floor(Math.random() * results.length)];
+    result.click();
+    return { clicked: true };
+  } finally {
+    if (ramSaverStyle) ramSaverStyle.textContent = savedStyleText;
+  }
+}
+
 async function syncFromStorage() {
   const state = await new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: "getRamSaverState" }, (response) => {
       resolve(response || { active: false });
     });
   });
-  if (state.active === true) {
-    injectRamSaver();
+  if (state.branded === true) {
+    injectExtensionFavicon();
+    injectExtensionTitle();
   } else {
-    removeRamSaver();
+    removeExtensionFavicon();
+    removeExtensionTitle();
   }
+  if (state.eco === true) injectEcoModeStyle();
+  else removeEcoModeStyle();
 }
 
 // document_start: hide before the heavy DOM renders whenever possible
@@ -165,10 +241,32 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 // Explicit fast-path commands from the background script, in case storage
 // events race a page navigation
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "ramSaverOn") {
     injectRamSaver();
   } else if (message?.type === "ramSaverOff") {
     removeRamSaver();
+  } else if (message?.type === "visitTabOn") {
+    injectExtensionFavicon();
+    injectExtensionTitle();
+    if (message.ecoMode === true) injectEcoModeStyle();
+    else removeEcoModeStyle();
+  } else if (message?.type === "visitTabOff") {
+    removeRamSaver();
+  } else if (message?.type === "visitSearchResult") {
+    visitRandomSearchResult().then(sendResponse);
+    return true;
   }
 });
+
+function notifySearchPageReady() {
+  chrome.runtime.sendMessage({ type: "searchPageReady" }).catch(() => {});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", notifySearchPageReady, {
+    once: true,
+  });
+} else {
+  notifySearchPageReady();
+}

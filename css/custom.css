@@ -331,9 +331,9 @@ h2 {
     --settings-space-6: 32px;
     --content-left-inset: var(--settings-space-2);
     --settings-card-padding: var(--content-left-inset);
-    --card-padding-y: var(--settings-card-padding);
+    --card-padding-y: 5px;
     --settings-input-radius: 8px;
-    --settings-icon-size: 18px;
+    --settings-icon-size: 20px;
     --settings-content-gap: var(--settings-space-2);
     --settings-section-gap: var(--settings-space-4);
     display: none;
@@ -515,18 +515,20 @@ body.dark-mode .setting-row {
 /* Icon wrapper: uniform across all rows (bare, no background box) */
 .tile-icon {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     width: var(--settings-icon-size);
     height: var(--settings-icon-size);
     flex-shrink: 0;
     color: var(--icon);
+    align-self: flex-start;
+    margin-top: var(--settings-space-0);
 }
 
 .tile-icon i {
     font-size: 13px;
     line-height: 1;
-    transform: translateY(-1px);
+    transform: translateY(0);
 }
 
 /* Content column: label above control, stretches full width */
@@ -545,12 +547,6 @@ body.dark-mode .setting-row {
 
 /* Eco row: title follows the shared card inset */
 .settings-card:has(.eco-toggle) .content-col {
-    margin-top: var(--settings-space-0);
-}
-
-/* Eco icon: same top-left relationship as the search-row icons */
-.settings-card:has(.eco-toggle) .tile-icon {
-    align-self: flex-start;
     margin-top: var(--settings-space-0);
 }
 
@@ -618,13 +614,14 @@ body.dark-mode .setting-row {
 
 .eco-toggle .eco-thumb {
     position: absolute;
-    top: 2px;
+    top: 50%;
     left: 2px;
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: var(--accent-contrast-text);
+    background: #ffffff;
     box-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 25%, transparent);
+    transform: translateY(-50%);
     transition: transform 0.2s ease;
 }
 
@@ -637,7 +634,37 @@ body.dark-mode .setting-row {
 }
 
 .eco-toggle.active .eco-thumb {
-    transform: translateX(14px);
+    left: auto;
+    right: var(--settings-space-0);
+    transform: translateY(-50%);
+}
+
+/* Give the General toggles a consistent two-line rhythm. */
+.settings-card:has(#visit-results-toggle) {
+    padding-top: var(--card-padding-y) !important;
+    padding-right: var(--settings-space-3) !important;
+    padding-bottom: var(--card-padding-y) !important;
+    padding-left: var(--settings-space-3) !important;
+}
+
+.settings-card:has(#visit-results-toggle) .setting-row {
+    align-items: flex-start !important;
+    padding: var(--settings-space-2) var(--settings-space-0) !important;
+    gap: var(--settings-content-gap) !important;
+}
+
+.settings-card:has(#visit-results-toggle) .setting-row + .setting-row {
+    padding-top: var(--settings-space-2) !important;
+}
+
+.settings-card:has(#visit-results-toggle) .settings-row-subtitle {
+    margin-left: var(--settings-space-0) !important;
+    margin-top: var(--settings-space-1) !important;
+    margin-bottom: var(--settings-space-0) !important;
+}
+
+.settings-card:has(#visit-results-toggle) .eco-toggle {
+    margin-top: var(--settings-space-0);
 }
 
 .settings-word-input {
