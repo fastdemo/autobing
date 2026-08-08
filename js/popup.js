@@ -2,6 +2,66 @@ import config from "./config.js";
 
 chrome.runtime.connect({ name: "popup" });
 
+function settingsRow({ icon, id, title, description, control }) {
+  return `
+    <div class="setting-row">
+      <div class="tile-icon"><i class="fa-solid ${icon}"></i></div>
+      <div class="content-col">
+        <label class="settings-row-title" for="${id}">${title}</label>
+        ${description ? `<span class="settings-row-subtitle">${description}</span>` : ""}
+      </div>
+      <div class="setting-control">${control}</div>
+    </div>`;
+}
+
+function settingsCard(rows, className = "") {
+  return `<div class="settings-card ${className}">${rows.join("")}</div>`;
+}
+
+function toggleControl(id, label) {
+  return `<button type="button" class="eco-toggle" id="${id}" role="switch" aria-checked="false" aria-label="Toggle ${label}"><span class="eco-thumb"></span></button>`;
+}
+
+function inputControl(id, placeholder) {
+  return `<input type="text" class="settings-word-input" id="${id}" spellcheck="false" placeholder="${placeholder}">`;
+}
+
+function renderSettingsView() {
+  const content = document.getElementById("settingsContent");
+  content.innerHTML = `
+    <div class="settings-section-label">General</div>
+    ${settingsCard([
+      settingsRow({
+        icon: "fa-leaf",
+        id: "eco-toggle",
+        title: "Eco Mode",
+        description: "Stops loading search page DOM to save RAM and power.",
+        control: toggleControl("eco-toggle", "Eco Mode"),
+      }),
+      settingsRow({
+        icon: "fa-arrow-up-right-from-square",
+        id: "visit-results-toggle",
+        title: "Visit Results",
+        description: "Opens one result after every five searches.",
+        control: toggleControl("visit-results-toggle", "Visit Results"),
+      }),
+    ], "settings-toggle-card")}
+
+    <div class="settings-section-label">Search Queries</div>
+    <p class="settings-section-note">Edit terms used to build unique random searches.</p>
+    ${settingsCard([
+      settingsRow({ icon: "fa-align-left", id: "moodDescriptorsField", title: "Descriptors", control: inputControl("moodDescriptorsField", "best, easy, quick, ...") }),
+      settingsRow({ icon: "fa-tags", id: "categoriesField", title: "Categories", control: inputControl("categoriesField", "coffee shops, dinner recipes, ...") }),
+      settingsRow({ icon: "fa-info", id: "extraDetailsField", title: "Extras", control: inputControl("extraDetailsField", "near me, for beginners, ...") }),
+    ], "settings-query-card")}
+
+    <div class="settings-section-label">Statistics</div>
+    ${settingsCard([`<div class="setting-row"><div class="content-col"><div class="combo-stats" id="comboStats" aria-live="polite"><div class="combo-card"><span class="combo-card-value" id="comboSearches">0</span><span class="combo-card-label">Searches</span></div><div class="combo-card"><span class="combo-card-value" id="comboTotal">0</span><span class="combo-card-label">Combos</span></div><div class="combo-card"><span class="combo-card-value" id="comboPercent">0%</span><span class="combo-card-label">Pool</span></div></div></div></div>`] )}
+    <button type="button" class="btn btn-action settings-reset-btn w-100" id="settingsReset"><i class="fa-solid fa-rotate-left reset-icon"></i><span class="reset-label">Restore settings</span></button>`;
+}
+
+renderSettingsView();
+
 let isRunning = false;
 let endlessMode = false;
 let visitResultsEnabled = false;
