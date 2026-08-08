@@ -123,7 +123,7 @@ function setRamSaverUI(enabled) {
     .attr("aria-checked", String(enabled));
 }
 
-// Visit one random top result after every tenth search.
+// Visit one random top result after every fifth search.
 $(config.domElements.visitResultsToggle).on("click", () => {
   const enabled = !$(config.domElements.visitResultsToggle).hasClass("active");
   setVisitResultsUI(enabled);
