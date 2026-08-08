@@ -1,18 +1,25 @@
 ![Autobing icon](img/icon128.png)
 # Autobing
 
-Automating your Bing searches so you don't have to!
+Automate Bing search sessions from a lightweight Chrome popup.
 
-## What it does
+## Highlights
 
-Autobing is a Chrome extension that runs Bing searches for you. Set a search count and a timer range, hit Start, and let it do the work.
+Autobing builds varied Bing queries, runs them in the active tab, and keeps the session visible with live progress and statistics.
 
 ## Features
 
-- **Automated searches**: Runs search batches automatically with customizable timers.
-- **Smart query generator**: Randomly combines words from 3 lists so searches look natural and don't repeat.
-- **Word list settings**: Edit your search word banks directly in the popup with auto-save.
-- **Clean UI**: Light and dark modes with thin hover scrollbars and custom footer animations.
+- **Automated search sessions**: Run a fixed batch or use Endless Mode for continuous searching.
+- **Flexible search modes**: Configure desktop, mobile, or combined desktop/mobile sessions.
+- **Natural query generation**: Combines descriptors, categories, and extra details into varied queries without repeating combinations during a pool cycle.
+- **Configurable timing**: Set minimum and maximum delays between searches in milliseconds.
+- **Visit Results**: Optionally opens one random result from the top five after every five searches, keeps the visit tab branded, and closes it after a short delay.
+- **Eco Mode**: Temporarily hides heavy Bing result-page content while a session runs to reduce page overhead. It is scoped to the active search tab.
+- **Target-tab isolation**: Search automation, Eco Mode, favicon changes, and tab-title changes stay scoped to the session's target tab.
+- **Live session feedback**: Track elapsed time, search count, percentage, progress, query-pool statistics, and Endless Mode state.
+- **Editable word banks**: Customize descriptors, categories, and extra details from Settings with saved preferences.
+- **Light and dark themes**: Switch themes from the popup footer.
+- **Restorable settings**: Restore the default word banks, timing values, and saved preferences from Settings.
 
 ## Install
 
@@ -30,10 +37,21 @@ Autobing is a Chrome extension that runs Bing searches for you. Set a search cou
 ## Usage
 
 1. Click the Autobing icon in the toolbar.
-2. Set how many searches to run.
-3. Set the min and max delay in milliseconds.
-4. Click Start.
-5. Use the gear icon to edit word lists in Settings.
+2. Choose a search mode and set the search count, or enable Endless Mode.
+3. Set the minimum and maximum delay in milliseconds.
+4. Optionally enable Eco Mode or Visit Results in Settings.
+5. Click Start and keep the target Bing tab open while the session runs.
+6. Use the gear icon to edit word banks and view session statistics.
+
+## Settings
+
+Settings are grouped into three areas:
+
+- **General**: Eco Mode and Visit Results.
+- **Search Queries**: Descriptors, Categories, and Extras.
+- **Statistics**: Current searches, available combinations, and pool usage.
+
+Preferences are stored locally by the extension and can be restored from the Settings view.
 
 ## License
 
@@ -41,7 +59,7 @@ MIT. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Not affiliated with Microsoft or the Microsoft Rewards program. Use it in line with Microsoft Rewards terms of service.
+Not affiliated with Microsoft or the Microsoft Rewards program. Use it responsibly and in line with Microsoft's terms of service.
 
 ## Credits
 

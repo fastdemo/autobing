@@ -1,6 +1,6 @@
 {
   "name": "Autobing",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "description": "Automating your Bing searches so you don't have to! (@fastdemo)",
   "manifest_version": 3,
   "action": {

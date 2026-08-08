@@ -146,11 +146,25 @@ h2 {
     letter-spacing: -0.02em;
     color: var(--text-primary);
     margin: 0;
-    transition: color 0.25s ease, transform 0.2s ease, text-shadow 0.25s ease;
+    transform-origin: center;
+    transition:
+        color 0.35s ease,
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        text-shadow 0.35s ease;
 }
 
 .app-title:hover {
-    transform: scale(1.03);
+    color: var(--accent);
+    text-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 30%, transparent);
+    transform: translateY(-1px) scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-title:hover {
+        transition: color 0.01ms linear;
+        transform: none;
+        text-shadow: none;
+    }
 }
 
 .app-subtitle {
@@ -949,6 +963,11 @@ body.dark-mode .app-header .header-icon {
 
 body.dark-mode .app-title {
     color: var(--text-primary);
+}
+
+body.dark-mode .app-title:hover {
+    color: var(--accent);
+    text-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 body.dark-mode .app-subtitle {
