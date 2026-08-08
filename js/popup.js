@@ -4,6 +4,7 @@ chrome.runtime.connect({ name: "popup" });
 
 let isRunning = false;
 let endlessMode = false;
+let visitResultsEnabled = false;
 let lastNumericValue = null;
 let startTime = 0;
 let timerInterval = null;
@@ -118,6 +119,20 @@ $(config.domElements.ramSaverToggle).on("click", () => {
 
 function setRamSaverUI(enabled) {
   $(config.domElements.ramSaverToggle)
+    .toggleClass("active", enabled)
+    .attr("aria-checked", String(enabled));
+}
+
+// Visit one random top result after every tenth search.
+$(config.domElements.visitResultsToggle).on("click", () => {
+  const enabled = !$(config.domElements.visitResultsToggle).hasClass("active");
+  setVisitResultsUI(enabled);
+  chrome.storage.local.set({ visitResultsEnabled: enabled });
+});
+
+function setVisitResultsUI(enabled) {
+  visitResultsEnabled = enabled;
+  $(config.domElements.visitResultsToggle)
     .toggleClass("active", enabled)
     .attr("aria-checked", String(enabled));
 }
@@ -437,6 +452,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   });
   await chrome.storage.local.remove("darkMode");
   await chrome.storage.local.remove("ramSaverEnabled");
+  await chrome.storage.local.remove("visitResultsEnabled");
 
   // Rebuild the combination pool and reset its index in the background
   chrome.runtime.sendMessage({ type: "resetPool" }, (response) => {
@@ -533,6 +549,7 @@ async function startSearches(searchType) {
     millisecondsMin: parseInt(config.searches.millisecondsMin),
     millisecondsMax: parseInt(config.searches.millisecondsMax),
     endless: endless,
+    visitResults: visitResultsEnabled,
   };
 
   await chrome.storage.local.set({ startTime: Date.now() });
@@ -584,6 +601,7 @@ async function loadPreferences() {
     "darkMode",
     "endlessMode",
     "ramSaverEnabled",
+    "visitResultsEnabled",
   ]);
 
   config.searches.desktop =
@@ -606,6 +624,7 @@ async function loadPreferences() {
   if (result.endlessMode && !endlessMode) setEndlessUI(true);
 
   setRamSaverUI(result.ramSaverEnabled === true);
+  setVisitResultsUI(result.visitResultsEnabled === true);
 
   applyDarkMode(result.darkMode === true);
 }

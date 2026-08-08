@@ -62,6 +62,7 @@ let config = {
     statsPercent: "#statsPercent",
     endlessToggle: "#endlessToggle",
     ramSaverToggle: "#eco-toggle",
+    visitResultsToggle: "#visit-results-toggle",
     comboSearches: "#comboSearches",
     comboTotal: "#comboTotal",
   },

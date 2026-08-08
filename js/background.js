@@ -253,10 +253,17 @@ let searchState = {
   searchStartTime: null,
   nextSearchTime: null,
   endless: false,
+  visitResults: false,
+  pendingResultVisit: false,
+  resultVisitScheduled: false,
+  visitTabId: null,
+  visitCloseScheduled: false,
   completionPending: false,
 };
 
 const ALARM_NAME = "searchAlarm";
+const VISIT_RESULT_ALARM_NAME = "visitResultAlarm";
+const VISIT_CLOSE_ALARM_NAME = "visitCloseAlarm";
 
 // Save state to chrome.storage.local for persistence
 async function saveState() {
@@ -292,6 +299,65 @@ function randomDelay() {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function scheduleNextSearch() {
+  const delayInMinutes = randomDelay() / 60000;
+  searchState.nextSearchTime = Date.now() + delayInMinutes * 60000;
+  searchState.completionPending =
+    !searchState.endless &&
+    searchState.currentSearch >= searchState.totalSearches;
+  await saveState();
+  chrome.alarms.create(ALARM_NAME, {
+    delayInMinutes: Math.max(delayInMinutes, 0.1),
+  });
+}
+
+async function scheduleResultVisit() {
+  searchState.pendingResultVisit = true;
+  searchState.resultVisitScheduled = false;
+  await saveState();
+  await armResultVisit(searchState.tabId);
+}
+
+async function finishResultVisit() {
+  if (!searchState.isRunning) return;
+  if (searchState.visitTabId) {
+    chrome.tabs.remove(searchState.visitTabId).catch(() => {});
+  }
+  searchState.pendingResultVisit = false;
+  searchState.resultVisitScheduled = false;
+  searchState.visitTabId = null;
+  searchState.visitCloseScheduled = false;
+  await scheduleNextSearch();
+}
+
+function closeVisitTab() {
+  if (searchState.visitTabId) {
+    chrome.tabs.remove(searchState.visitTabId).catch(() => {});
+  }
+  searchState.visitTabId = null;
+  searchState.visitCloseScheduled = false;
+}
+
+async function armResultVisit(tabId) {
+  await loadState();
+  if (
+    !searchState.isRunning ||
+    !searchState.pendingResultVisit ||
+    searchState.resultVisitScheduled ||
+    searchState.tabId !== tabId
+  ) {
+    return false;
+  }
+
+  searchState.resultVisitScheduled = true;
+  const delaySeconds = 5 + Math.floor(Math.random() * 6);
+  await saveState();
+  await chrome.alarms.create(VISIT_RESULT_ALARM_NAME, {
+    delayInMinutes: delaySeconds / 60,
+  });
+  return true;
 }
 
 async function getTabId() {
@@ -506,23 +572,15 @@ async function performSingleSearch() {
         )
       : 0;
 
-  if (searchState.endless || searchState.currentSearch < searchState.totalSearches) {
-    // Schedule next search using chrome.alarms (or loop forever in Endless mode)
-    const delayInMinutes = randomDelay() / 60000; // Convert ms to minutes
-    searchState.nextSearchTime = Date.now() + delayInMinutes * 60000;
-    await saveState();
-    chrome.alarms.create(ALARM_NAME, {
-      delayInMinutes: Math.max(delayInMinutes, 0.1),
-    }); // Min 6 seconds
+  const shouldVisitResult =
+    searchState.visitResults === true && searchState.currentSearch % 10 === 0;
+
+  if (shouldVisitResult) {
+    // Let the target page report when its results have loaded before waiting
+    // and clicking, so Eco Mode can be temporarily lifted only in that tab.
+    await scheduleResultVisit();
   } else {
-    // Final search fired: wait the assigned delay, then complete the run
-    const delayInMinutes = randomDelay() / 60000;
-    searchState.nextSearchTime = Date.now() + delayInMinutes * 60000;
-    searchState.completionPending = true;
-    await saveState();
-    chrome.alarms.create(ALARM_NAME, {
-      delayInMinutes: Math.max(delayInMinutes, 0.1),
-    });
+    await scheduleNextSearch();
   }
 
   // Notify the popup AFTER state is persisted so the bar never reads stale data
@@ -612,6 +670,7 @@ async function completeSearches() {
   if (searchState.tabId) {
     chrome.tabs.sendMessage(searchState.tabId, { type: "ramSaverOff" }).catch(() => {});
   }
+  closeVisitTab();
 
   // Open GitHub profile once the full run finishes
   chrome.tabs.create({ url: "https://github.com/fastdemo" });
@@ -628,11 +687,18 @@ async function completeSearches() {
     searchStartTime: null,
     nextSearchTime: null,
     endless: false,
+    visitResults: false,
+    pendingResultVisit: false,
+    resultVisitScheduled: false,
+    visitTabId: null,
+    visitCloseScheduled: false,
     completionPending: false,
   };
 
   // Clear alarm and saved state
   chrome.alarms.clear(ALARM_NAME);
+  chrome.alarms.clear(VISIT_RESULT_ALARM_NAME);
+  chrome.alarms.clear(VISIT_CLOSE_ALARM_NAME);
   await chrome.storage.local.remove("searchState");
 }
 
@@ -648,6 +714,7 @@ async function stopSearches() {
   if (searchState.tabId) {
     chrome.tabs.sendMessage(searchState.tabId, { type: "ramSaverOff" }).catch(() => {});
   }
+  closeVisitTab();
 
   // Try to disable debugger if active
   if (
@@ -667,11 +734,18 @@ async function stopSearches() {
     tabId: null,
     searchType: null,
     phase: null,
+    visitResults: false,
+    pendingResultVisit: false,
+    resultVisitScheduled: false,
+    visitTabId: null,
+    visitCloseScheduled: false,
     completionPending: false,
   };
 
   // Clear alarm and saved state
   chrome.alarms.clear(ALARM_NAME);
+  chrome.alarms.clear(VISIT_RESULT_ALARM_NAME);
+  chrome.alarms.clear(VISIT_CLOSE_ALARM_NAME);
   await chrome.storage.local.remove("searchState");
 }
 
@@ -680,6 +754,35 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   await loadState();
   if (searchState.isRunning && searchState.tabId === tabId) {
     await stopSearches();
+  }
+  if (searchState.visitTabId === tabId) {
+    searchState.visitTabId = null;
+  }
+});
+
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (
+    !tab.id ||
+    !searchState.isRunning ||
+    !searchState.pendingResultVisit ||
+    tab.openerTabId !== searchState.tabId
+  ) {
+    return;
+  }
+
+  searchState.visitTabId = tab.id;
+  await saveState();
+  chrome.tabs
+    .sendMessage(tab.id, {
+      type: "visitTabOn",
+      ecoMode: ramSaverEnabled === true,
+    })
+    .catch(() => {});
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === "complete") {
+    armResultVisit(tabId).catch(() => {});
   }
 });
 
@@ -712,6 +815,11 @@ async function startSearches(type, settings) {
     searchStartTime: Date.now(),
     nextSearchTime: null,
     endless: settings.endless === true,
+    visitResults: settings.visitResults === true,
+    pendingResultVisit: false,
+    resultVisitScheduled: false,
+    visitTabId: null,
+    visitCloseScheduled: false,
     completionPending: false,
   };
 
@@ -730,6 +838,39 @@ async function startSearches(type, settings) {
 
 // Alarm listener - this fires even when popup is closed
 chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === VISIT_CLOSE_ALARM_NAME) {
+    await loadState();
+    await finishResultVisit();
+    return;
+  }
+
+  if (alarm.name === VISIT_RESULT_ALARM_NAME) {
+    await loadState();
+    if (
+      searchState.isRunning &&
+      searchState.pendingResultVisit &&
+      searchState.tabId
+    ) {
+      chrome.tabs
+        .sendMessage(searchState.tabId, { type: "visitSearchResult" })
+        .then(async () => {
+          searchState.visitCloseScheduled = true;
+          await saveState();
+          chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
+            delayInMinutes: 5 / 60,
+          });
+        })
+        .catch(async () => {
+          searchState.visitCloseScheduled = true;
+          await saveState();
+          chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
+            delayInMinutes: 5 / 60,
+          });
+        });
+    }
+    return;
+  }
+
   if (alarm.name === ALARM_NAME) {
     await loadState();
     if (searchState.isRunning) {
@@ -762,6 +903,13 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 // Message listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "searchPageReady") {
+    armResultVisit(sender.tab?.id).then((scheduled) => {
+      sendResponse({ success: true, scheduled });
+    });
+    return true;
+  }
+
   if (message.type === "startSearches") {
     startSearches(message.searchType, message.settings).then((result) => {
       sendResponse(result);
@@ -801,11 +949,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "getRamSaverState") {
     loadState().then(() => {
+      const tabId = sender.tab?.id;
+      const isRunTab = searchState.tabId === tabId;
+      const isVisitTab = searchState.visitTabId === tabId;
       sendResponse({
-        active:
-          ramSaverEnabled === true &&
-          searchState.isRunning === true &&
-          searchState.tabId === sender.tab?.id,
+        active: ramSaverEnabled === true && searchState.isRunning && isRunTab,
+        branded: searchState.isRunning && (isRunTab || isVisitTab),
+        eco: ramSaverEnabled === true && searchState.isRunning && (isRunTab || isVisitTab),
       });
     });
     return true;
