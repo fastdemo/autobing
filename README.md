@@ -3,6 +3,10 @@
 
 Automate Bing search sessions from a lightweight Chrome popup.
 
+## Image
+
+![Autobing product thumbnail](AutobingThumb.png)
+
 ## Highlights
 
 Autobing builds varied Bing queries, runs them in the active tab, and keeps the session visible with live progress and statistics.
