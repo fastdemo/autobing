@@ -56,7 +56,7 @@ function renderSettingsView() {
     ], "settings-query-card")}
 
     <div class="settings-section-label">Statistics</div>
-    ${settingsCard([`<div class="setting-row"><div class="content-col"><div class="combo-stats" id="comboStats" aria-live="polite"><div class="combo-card"><span class="combo-card-value" id="comboSearches">0</span><span class="combo-card-label">Searches</span></div><div class="combo-card"><span class="combo-card-value" id="comboTotal">0</span><span class="combo-card-label">Combos</span></div><div class="combo-card"><span class="combo-card-value" id="comboPercent">0%</span><span class="combo-card-label">Pool</span></div></div></div></div>`] )}
+    ${settingsCard([`<div class="setting-row"><div class="content-col"><div class="combo-stats" id="comboStats" aria-live="polite"><div class="combo-card"><span class="combo-card-value" id="comboSearches">0</span><span class="combo-card-label">Searches</span></div><div class="combo-card"><span class="combo-card-value" id="comboTotal">0</span><span class="combo-card-label">Combos</span></div><div class="combo-card"><span class="combo-card-value" id="comboPercent">0%</span><span class="combo-card-label">Pool</span></div></div></div></div>`], "settings-stats-card")}
     <button type="button" class="btn btn-action settings-reset-btn w-100" id="settingsReset"><i class="fa-solid fa-rotate-left reset-icon"></i><span class="reset-label">Restore settings</span></button>`;
 }
 

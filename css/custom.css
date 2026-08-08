@@ -596,6 +596,8 @@ body.dark-mode .setting-row {
 .eco-toggle {
     display: flex;
     align-items: center;
+    align-content: center;
+    box-sizing: border-box;
     justify-content: flex-start;
     flex-shrink: 0;
     width: var(--settings-toggle-width);
@@ -610,6 +612,7 @@ body.dark-mode .setting-row {
 
 .eco-toggle .eco-thumb {
     position: static;
+    align-self: center;
     flex: 0 0 var(--settings-toggle-knob-size);
     width: var(--settings-toggle-knob-size);
     height: var(--settings-toggle-knob-size);
@@ -617,6 +620,9 @@ body.dark-mode .setting-row {
     background: #ffffff;
     box-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 25%, transparent);
     margin-left: 2px;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 0;
 }
 
 .eco-toggle:hover {
@@ -715,6 +721,30 @@ body.dark-mode .setting-row {
 .settings-query-card .settings-word-input {
     flex: none !important;
     margin: var(--settings-space-0) !important;
+}
+
+.settings-stats-card {
+    padding: var(--settings-space-2) !important;
+}
+
+.settings-stats-card .setting-row {
+    display: block !important;
+    padding: var(--settings-space-0) !important;
+    border: none;
+}
+
+.settings-stats-card .content-col {
+    width: 100%;
+}
+
+.settings-stats-card .combo-stats {
+    gap: var(--settings-space-2);
+    margin: var(--settings-space-0);
+    padding: var(--settings-space-0);
+}
+
+.settings-stats-card .combo-card {
+    padding: var(--settings-space-2) var(--settings-space-1) !important;
 }
 
 .settings-word-input {
