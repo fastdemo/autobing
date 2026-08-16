@@ -601,6 +601,10 @@ $(config.domElements.settingsReset).on("click", async () => {
   $(config.domElements.waitingBetweenSearchesFormMax).val(
     DEFAULT_SEARCH_CONFIG.millisecondsMax,
   );
+  config.searches.desktop = DEFAULT_SEARCH_CONFIG.desktop;
+  config.searches.mobile = DEFAULT_SEARCH_CONFIG.mobile;
+  config.searches.millisecondsMin = DEFAULT_SEARCH_CONFIG.millisecondsMin;
+  config.searches.millisecondsMax = DEFAULT_SEARCH_CONFIG.millisecondsMax;
   applyDarkMode(false);
   setRamSaverUI(false);
   setBrandingUI(true);

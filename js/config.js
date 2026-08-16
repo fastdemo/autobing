@@ -1,6 +1,6 @@
 let config = {
   general: {
-    appVersion: "v1.5.3",
+    appVersion: "v1.6.0",
   },
   bing: {
     url: "https://bing.com/search?q={q}&form={form}&cvid={cvid}",

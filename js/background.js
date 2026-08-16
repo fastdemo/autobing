@@ -353,6 +353,33 @@ function randomDelay() {
   );
 }
 
+function validateSearchSettings(type, settings) {
+  if (!["desktop", "mobile", "desktopMobile"].includes(type)) {
+    return "Unknown search type";
+  }
+  if (!settings || typeof settings !== "object") {
+    return "Search settings are missing";
+  }
+  const requiresDesktop = type === "desktop" || type === "desktopMobile";
+  const requiresMobile = type === "mobile" || type === "desktopMobile";
+  const desktopSearches = Number(settings.desktopSearches);
+  const mobileSearches = Number(settings.mobileSearches);
+  const minimumDelay = Number(settings.millisecondsMin);
+  const maximumDelay = Number(settings.millisecondsMax);
+  const endless = settings.endless === true;
+
+  if (!endless && requiresDesktop && (!Number.isInteger(desktopSearches) || desktopSearches < 1)) {
+    return "Desktop searches must be a positive whole number";
+  }
+  if (!endless && requiresMobile && (!Number.isInteger(mobileSearches) || mobileSearches < 1)) {
+    return "Mobile searches must be a positive whole number";
+  }
+  if (!Number.isInteger(minimumDelay) || !Number.isInteger(maximumDelay) || minimumDelay < 100 || maximumDelay < minimumDelay) {
+    return "Search delays must be whole numbers with a valid minimum and maximum";
+  }
+  return null;
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -430,13 +457,9 @@ async function armResultVisit(tabId) {
 }
 
 async function getTabId() {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      var activeTab = tabs[0];
-      var activeTabId = activeTab.id;
-      resolve(activeTabId);
-    });
-  });
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tabs[0]?.id) throw new Error("No active tab is available");
+  return tabs[0].id;
 }
 
 // Notify popup about state changes
@@ -450,6 +473,10 @@ function notifyPopup(message) {
 async function enableDebugger(tabId) {
   return new Promise((resolve, reject) => {
     chrome.debugger.attach({ tabId }, "1.2", function () {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
       console.log(`Debugger enabled for tab: ${tabId}`);
       resolve(true);
     });
@@ -460,6 +487,10 @@ async function enableDebugger(tabId) {
 async function disableDebugger(tabId) {
   return new Promise((resolve, reject) => {
     chrome.debugger.detach({ tabId }, function () {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
       console.log(`Debugger disabled for tab: ${tabId}`);
       resolve(true);
     });
@@ -500,6 +531,10 @@ async function activeMobileAgent(tabId) {
         },
       },
       function () {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
         // Then set device metrics
         chrome.debugger.sendCommand(
           {
@@ -518,6 +553,10 @@ async function activeMobileAgent(tabId) {
             screenOrientation: { type: "portraitPrimary", angle: 0 },
           },
           function () {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
             // Enable touch emulation
             chrome.debugger.sendCommand(
               {
@@ -529,6 +568,10 @@ async function activeMobileAgent(tabId) {
                 maxTouchPoints: 5,
               },
               function () {
+                if (chrome.runtime.lastError) {
+                  reject(new Error(chrome.runtime.lastError.message));
+                  return;
+                }
                 resolve(true);
               },
             );
@@ -572,6 +615,10 @@ async function activeDesktopAgent(tabId) {
         },
       },
       function () {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
         chrome.debugger.sendCommand(
           {
             tabId: tabId,
@@ -586,6 +633,10 @@ async function activeDesktopAgent(tabId) {
             screenHeight: config.devices.desktop.height,
           },
           function () {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
             // Disable touch emulation
             chrome.debugger.sendCommand(
               {
@@ -596,6 +647,10 @@ async function activeDesktopAgent(tabId) {
                 enabled: false,
               },
               function () {
+                if (chrome.runtime.lastError) {
+                  reject(new Error(chrome.runtime.lastError.message));
+                  return;
+                }
                 resolve(true);
               },
             );
@@ -606,8 +661,38 @@ async function activeDesktopAgent(tabId) {
   });
 }
 
-// Perform a single search
+async function submitSearchBoxQuery(tabId, query) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 20; attempt++) {
+    try {
+      const result = await chrome.tabs.sendMessage(tabId, {
+        type: "searchByBox",
+        query,
+      });
+      if (result?.success === true) return;
+      lastError = new Error("Bing search box was not available");
+    } catch (error) {
+      lastError = error;
+    }
+    await sleep(250);
+  }
+  throw lastError || new Error("Bing search box was not available");
+}
+
+let searchExecutionInFlight = false;
+
 async function performSingleSearch() {
+  if (searchExecutionInFlight) return;
+  searchExecutionInFlight = true;
+  try {
+    await performSingleSearchInternal();
+  } finally {
+    searchExecutionInFlight = false;
+  }
+}
+
+// Perform a single search
+async function performSingleSearchInternal() {
   if (!searchState.isRunning) return;
 
   // Refresh word banks so customizations apply to the current run
@@ -623,13 +708,7 @@ async function performSingleSearch() {
       searchState.searchMethod === "searchBox" &&
       searchState.searchBoxInitialNavigationPending !== true;
     if (useSearchBox) {
-      const result = await chrome.tabs.sendMessage(searchState.tabId, {
-        type: "searchByBox",
-        query,
-      });
-      if (result?.success !== true) {
-        throw new Error("Bing search box was not available");
-      }
+      await submitSearchBoxQuery(searchState.tabId, query);
     } else {
       const searchUrl = config.bing.url
         .replace("{q}", encodeURIComponent(query))
@@ -687,8 +766,16 @@ async function handlePhaseComplete() {
     await completeSearches();
   } else if (searchState.searchType === "mobile") {
     // Mobile only completed
-    await activeDesktopAgent(searchState.tabId);
-    await disableDebugger(searchState.tabId);
+    try {
+      await activeDesktopAgent(searchState.tabId);
+    } catch (error) {
+      console.error("Failed to restore desktop phase", error);
+      await stopSearches();
+      return;
+    }
+    await disableDebugger(searchState.tabId).catch((error) => {
+      console.error("Failed to restore desktop debugger state", error);
+    });
     await completeSearches();
   } else if (searchState.searchType === "desktopMobile") {
     if (searchState.phase === "desktop") {
@@ -697,8 +784,14 @@ async function handlePhaseComplete() {
       searchState.currentSearch = 0;
       searchState.totalSearches = searchState.mobileSearches;
 
-      await enableDebugger(searchState.tabId);
-      await activeMobileAgent(searchState.tabId);
+      try {
+        await enableDebugger(searchState.tabId);
+        await activeMobileAgent(searchState.tabId);
+      } catch (error) {
+        console.error("Failed to activate mobile phase", error);
+        await stopSearches();
+        return;
+      }
 
       notifyPopup({
         type: "phaseChange",
@@ -715,8 +808,16 @@ async function handlePhaseComplete() {
       });
     } else {
       // Mobile phase completed
-      await activeDesktopAgent(searchState.tabId);
-      await disableDebugger(searchState.tabId);
+      try {
+        await activeDesktopAgent(searchState.tabId);
+      } catch (error) {
+        console.error("Failed to restore desktop phase", error);
+        await stopSearches();
+        return;
+      }
+      await disableDebugger(searchState.tabId).catch((error) => {
+        console.error("Failed to restore desktop debugger state", error);
+      });
 
       if (searchState.endless) {
         // Endless mode: loop back to the desktop phase and keep going
@@ -888,7 +989,15 @@ async function startSearches(type, settings) {
     return { success: false, error: "Searches already running" };
   }
 
-  const tabId = await getTabId();
+  const validationError = validateSearchSettings(type, settings);
+  if (validationError) return { success: false, error: validationError };
+
+  let tabId;
+  try {
+    tabId = await getTabId();
+  } catch (error) {
+    return { success: false, error: String(error.message || error) };
+  }
 
   // Blank the search page immediately if RAM Saver Mode is on (the content
   // script also self-activates via storage after each navigation)
@@ -925,8 +1034,13 @@ async function startSearches(type, settings) {
 
   // Initialize mobile mode if needed
   if (type === "mobile") {
-    await enableDebugger(tabId);
-    await activeMobileAgent(tabId);
+    try {
+      await enableDebugger(tabId);
+      await activeMobileAgent(tabId);
+    } catch (error) {
+      await disableDebugger(tabId).catch(() => {});
+      return { success: false, error: String(error.message || error) };
+    }
   }
 
   // Save state and start the first search
@@ -976,21 +1090,33 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 });
 
-// Restore state on service worker startup
-chrome.runtime.onStartup.addListener(async () => {
+async function recoverRunningSearch() {
   await loadState();
-  if (searchState.isRunning) {
-    // Resume searches
-    performSingleSearch();
+  if (!searchState.isRunning) return;
+
+  const alarms = await chrome.alarms.getAll();
+  if (alarms.some((alarm) =>
+    [ALARM_NAME, VISIT_RESULT_ALARM_NAME, VISIT_CLOSE_ALARM_NAME].includes(alarm.name)
+  )) {
+    return;
   }
+
+  if (searchState.pendingResultVisit) {
+    if (searchState.visitCloseScheduled) await scheduleVisitTabClose();
+    else await armResultVisit(searchState.tabId);
+    return;
+  }
+  performSingleSearch();
+}
+
+// Restore state on service worker startup
+chrome.runtime.onStartup.addListener(() => {
+  recoverRunningSearch().catch((error) => console.error("Search recovery failed", error));
 });
 
 // Also check on install/update
-chrome.runtime.onInstalled.addListener(async () => {
-  await loadState();
-  if (searchState.isRunning) {
-    performSingleSearch();
-  }
+chrome.runtime.onInstalled.addListener(() => {
+  recoverRunningSearch().catch((error) => console.error("Search recovery failed", error));
 });
 
 // Message listener
@@ -1031,9 +1157,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "startSearches") {
-    startSearches(message.searchType, message.settings).then((result) => {
-      sendResponse(result);
-    });
+    startSearches(message.searchType, message.settings)
+      .then((result) => sendResponse(result))
+      .catch((error) => sendResponse({ success: false, error: String(error) }));
     return true; // Indicates async response
   }
 
