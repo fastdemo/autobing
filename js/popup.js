@@ -22,9 +22,9 @@ function toggleControl(id, label) {
   return `<button type="button" class="eco-toggle" id="${id}" role="switch" aria-checked="false" aria-label="Toggle ${label}"><span class="eco-thumb"></span></button>`;
 }
 
-function segmentedControl(id, options, label) {
+function segmentedControl(id, options, label, initialValue = options[0]?.value) {
   return `<div class="settings-segmented" id="${id}" role="radiogroup" aria-label="${label}">${options
-    .map(({ value, label }, index) => `<button type="button" class="settings-segment${index === 0 ? " active" : ""}" data-value="${value}" role="radio" aria-checked="${index === 0}" tabindex="${index === 0 ? "0" : "-1"}">${label}</button>`)
+    .map(({ value, label }) => `<button type="button" class="settings-segment${value === initialValue ? " active" : ""}" data-value="${value}" role="radio" aria-checked="${value === initialValue}" tabindex="${value === initialValue ? "0" : "-1"}">${label}</button>`)
     .join("")}</div>`;
 }
 
@@ -67,7 +67,7 @@ function renderSettingsView() {
         control: segmentedControl("searchMethodSelect", [
           { value: "url", label: "URL" },
           { value: "searchBox", label: "Search Box" },
-        ], "Search Method"),
+        ], "Search Method", "searchBox"),
       }),
     ], "settings-toggle-card")}
 
@@ -90,7 +90,7 @@ let isRunning = false;
 let endlessMode = false;
 let visitResultsEnabled = false;
 let brandingEnabled = true;
-let searchMethod = "url";
+let searchMethod = "searchBox";
 let lastNumericValue = null;
 let startTime = 0;
 let timerInterval = null;
@@ -602,7 +602,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   applyDarkMode(false);
   setRamSaverUI(false);
   setBrandingUI(true);
-  setSearchMethodUI("url");
+  setSearchMethodUI("searchBox");
 
   updateComboStats();
   flashResetFeedback();
@@ -755,7 +755,7 @@ async function loadPreferences() {
   setRamSaverUI(result.ramSaverEnabled === true);
   setVisitResultsUI(result.visitResultsEnabled === true);
   setBrandingUI(result.brandingEnabled !== false);
-  searchMethod = result.searchMethod === "searchBox" ? "searchBox" : "url";
+  searchMethod = result.searchMethod === "url" ? "url" : "searchBox";
   setSearchMethodUI(searchMethod);
 
   applyDarkMode(result.darkMode === true);

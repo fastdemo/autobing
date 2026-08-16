@@ -300,7 +300,7 @@ let searchState = {
   searchStartTime: null,
   nextSearchTime: null,
   endless: false,
-  searchMethod: "url",
+  searchMethod: "searchBox",
   visitResults: false,
   pendingResultVisit: false,
   resultVisitScheduled: false,
@@ -329,7 +329,7 @@ async function loadState() {
   if (result.searchState) {
     searchState = result.searchState;
     searchState.searchMethod =
-      result.searchState.searchMethod === "searchBox" ? "searchBox" : "url";
+      result.searchState.searchMethod === "url" ? "url" : "searchBox";
   }
   ramSaverEnabled = result.ramSaverEnabled === true;
   brandingEnabled = result.brandingEnabled !== false;
