@@ -98,6 +98,7 @@ let queryPool = {
   indices: [],
   currentQueryIndex: 0,
 };
+let searchCount = 0;
 
 const WORD_BANK_STORAGE_KEYS = ["moodDescriptors", "categories", "extraDetails"];
 
@@ -149,7 +150,11 @@ chrome.downloads.onCreated.addListener((item) => {
 // Load user-customized word banks from chrome.storage.local
 async function loadWordBanks() {
   await loadQueryPool();
-  const result = await chrome.storage.local.get(WORD_BANK_STORAGE_KEYS);
+  const result = await chrome.storage.local.get([
+    ...WORD_BANK_STORAGE_KEYS,
+    "searchCount",
+  ]);
+  searchCount = Number.isFinite(result.searchCount) ? result.searchCount : searchCount;
   wordBanks = {
     mood: normalizeWordBank(result.moodDescriptors, MOOD_DESCRIPTORS),
     category: normalizeWordBank(result.categories, CATEGORIES),
@@ -620,6 +625,8 @@ async function performSingleSearch() {
   }
 
   searchState.currentSearch++;
+  searchCount++;
+  chrome.storage.local.set({ searchCount }).catch(() => {});
   const progress =
     searchState.totalSearches > 0
       ? parseInt(

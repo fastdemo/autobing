@@ -621,7 +621,7 @@ body.dark-mode .setting-row {
     border-radius: 999px;
     background: var(--surface-inset);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 180ms ease-out;
 }
 
 .eco-toggle .eco-thumb {
@@ -637,6 +637,7 @@ body.dark-mode .setting-row {
     margin-top: 0;
     margin-bottom: 0;
     line-height: 0;
+    transition: transform 180ms ease-out;
 }
 
 .eco-toggle:hover {
@@ -645,12 +646,18 @@ body.dark-mode .setting-row {
 
 .eco-toggle.active {
     background: var(--accent);
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .eco-toggle.active .eco-thumb {
-    margin-left: 0;
-    margin-right: 2px;
+    margin-left: 2px;
+    margin-right: 0;
+    transform: translateX(
+        calc(
+            var(--settings-toggle-width) -
+            var(--settings-toggle-knob-size) - 4px
+        )
+    );
 }
 
 /* Shared three-column layout for the toggle card. */
@@ -738,6 +745,7 @@ body.dark-mode .setting-row {
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
+    transition: background-color 180ms ease-out, color 180ms ease-out;
 }
 
 .settings-toggle-card .search-method-row .settings-segment + .settings-segment {
@@ -800,6 +808,22 @@ body.dark-mode .settings-toggle-card .search-method-row .settings-segment.active
 .settings-query-card .settings-word-input {
     flex: none !important;
     margin: var(--settings-space-0) !important;
+}
+
+.settings-query-card .settings-row-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--settings-content-gap);
+    width: 100%;
+}
+
+.settings-query-card .settings-term-count {
+    flex: 0 0 auto;
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.3;
 }
 
 .settings-stats-card {

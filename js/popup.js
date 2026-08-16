@@ -74,9 +74,9 @@ function renderSettingsView() {
     <div class="settings-section-label">Search Queries</div>
     <p class="settings-section-note">Edit terms used to build unique random searches.</p>
     ${settingsCard([
-      settingsRow({ icon: "fa-align-left", id: "moodDescriptorsField", title: "Descriptors", control: inputControl("moodDescriptorsField", "best, easy, quick, ...") }),
-      settingsRow({ icon: "fa-tags", id: "categoriesField", title: "Categories", control: inputControl("categoriesField", "coffee shops, dinner recipes, ...") }),
-      settingsRow({ icon: "fa-info", id: "extraDetailsField", title: "Extras", control: inputControl("extraDetailsField", "near me, for beginners, ...") }),
+       settingsRow({ icon: "fa-align-left", id: "moodDescriptorsField", title: `Descriptors <span class="settings-term-count" id="moodDescriptorsCount">0 terms</span>`, control: inputControl("moodDescriptorsField", "best, easy, quick, ...") }),
+       settingsRow({ icon: "fa-tags", id: "categoriesField", title: `Categories <span class="settings-term-count" id="categoriesCount">0 terms</span>`, control: inputControl("categoriesField", "coffee shops, dinner recipes, ...") }),
+       settingsRow({ icon: "fa-info", id: "extraDetailsField", title: `Extras <span class="settings-term-count" id="extraDetailsCount">0 terms</span>`, control: inputControl("extraDetailsField", "near me, for beginners, ...") }),
     ], "settings-query-card")}
 
     <div class="settings-section-label">Statistics</div>
@@ -494,33 +494,29 @@ function formatCompact(value) {
 // Live combo counter: [unique searches in memory] • [total combos] • [coverage]% pool
 async function updateComboStats() {
   // Only meaningful while the Settings view is open: word bank fields are
-  // empty outside it, which would compute 1 combo and falsely trigger the
-  // 100% reset, wiping the stored pool mid-cycle.
+  // empty outside it.
   if (!$(config.domElements.settingsView).hasClass("open")) return;
 
-  const countField = (selector) =>
-    Math.max(
-      countWords(selector),
-      1,
-    );
-  const descriptors = countField(config.domElements.moodDescriptorsField);
-  const categories = countField(config.domElements.categoriesField);
-  const extras = countField(config.domElements.extraDetailsField);
+  const descriptorCount = countWords(config.domElements.moodDescriptorsField);
+  const categoryCount = countWords(config.domElements.categoriesField);
+  const extraCount = countWords(config.domElements.extraDetailsField);
+  $("#moodDescriptorsCount").text(`${descriptorCount} term${descriptorCount === 1 ? "" : "s"}`);
+  $("#categoriesCount").text(`${categoryCount} term${categoryCount === 1 ? "" : "s"}`);
+  $("#extraDetailsCount").text(`${extraCount} term${extraCount === 1 ? "" : "s"}`);
+
+  const descriptors = Math.max(descriptorCount, 1);
+  const categories = Math.max(categoryCount, 1);
+  const extras = Math.max(extraCount, 1);
   const totalCombinations = descriptors * categories * extras;
 
-  // Unique searches in memory = how many pool indices have been served
-  const result = await chrome.storage.local.get("queryPool");
-  let uniqueSearches = Array.isArray(result.queryPool?.indices)
-    ? result.queryPool.currentQueryIndex
-    : 0;
-
-  // Automatic 100% reset: pool exhausted, wipe history so the cycle starts fresh
-  if (totalCombinations > 0 && uniqueSearches >= totalCombinations) {
-    await chrome.storage.local.set({
-      queryPool: { fingerprint: "", indices: [], currentQueryIndex: 0 },
-    });
-    uniqueSearches = 0;
-  }
+  // Search count is independent from the shuffled pool and survives settings
+  // restoration; the pool can still cycle internally when exhausted.
+  const result = await chrome.storage.local.get(["queryPool", "searchCount"]);
+  const uniqueSearches = Number.isFinite(result.searchCount)
+    ? result.searchCount
+    : Array.isArray(result.queryPool?.indices)
+      ? result.queryPool.currentQueryIndex
+      : 0;
 
   $(config.domElements.comboSearches).text(formatCompact(uniqueSearches));
   $(config.domElements.comboTotal).text(formatCompact(totalCombinations));
@@ -588,13 +584,6 @@ $(config.domElements.settingsReset).on("click", async () => {
   await chrome.storage.local.remove("visitResultsEnabled");
   await chrome.storage.local.remove("brandingEnabled");
   await chrome.storage.local.remove("searchMethod");
-
-  // Rebuild the combination pool and reset its index in the background
-  chrome.runtime.sendMessage({ type: "resetPool" }, (response) => {
-    if (response && !response.success) {
-      console.error("Failed to reset query pool:", response?.error);
-    }
-  });
 
   // Refresh the UI immediately
   await loadWordBankFields();
