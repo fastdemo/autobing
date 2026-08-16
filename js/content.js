@@ -283,6 +283,31 @@ async function visitRandomSearchResult() {
   }
 }
 
+function submitSearchBox(query) {
+  const input = document.querySelector(
+    "#sb_form_q, input[name='q'], textarea[name='q']",
+  );
+  if (!input) return false;
+
+  input.focus();
+  input.value = query;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+
+  const form = input.form;
+  const submitButton = form?.querySelector(
+    "#sb_form_go, button[type='submit'], input[type='submit']",
+  );
+  if (submitButton) {
+    submitButton.click();
+  } else if (typeof form?.requestSubmit === "function") {
+    form.requestSubmit();
+  } else {
+    return false;
+  }
+  return true;
+}
+
 async function syncFromStorage() {
   const state = await new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: "getRamSaverState" }, (response) => {
@@ -317,7 +342,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // Explicit fast-path commands from the background script, in case storage
 // events race a page navigation
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.type === "ramSaverOn") {
+  if (message?.type === "searchByBox") {
+    sendResponse({ success: submitSearchBox(message.query) });
+  } else if (message?.type === "ramSaverOn") {
     injectRamSaver();
   } else if (message?.type === "ramSaverOff") {
     removeRamSaver();

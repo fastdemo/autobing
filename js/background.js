@@ -295,6 +295,7 @@ let searchState = {
   searchStartTime: null,
   nextSearchTime: null,
   endless: false,
+  searchMethod: "url",
   visitResults: false,
   pendingResultVisit: false,
   resultVisitScheduled: false,
@@ -322,6 +323,8 @@ async function loadState() {
   ]);
   if (result.searchState) {
     searchState = result.searchState;
+    searchState.searchMethod =
+      result.searchState.searchMethod === "searchBox" ? "searchBox" : "url";
   }
   ramSaverEnabled = result.ramSaverEnabled === true;
   brandingEnabled = result.brandingEnabled !== false;
@@ -593,15 +596,23 @@ async function performSingleSearch() {
   // Save the current pool index after every generated query
   await persistQueryPool();
 
-  const searchUrl = config.bing.url
-    .replace("{q}", encodeURIComponent(query))
-    .replace("{form}", config.bing.form)
-    .replace("{cvid}", "");
-
-  console.log("Open new search at:", searchUrl);
-
   try {
-    await chrome.tabs.update(searchState.tabId, { url: searchUrl });
+    if (searchState.searchMethod === "searchBox") {
+      const result = await chrome.tabs.sendMessage(searchState.tabId, {
+        type: "searchByBox",
+        query,
+      });
+      if (result?.success !== true) {
+        throw new Error("Bing search box was not available");
+      }
+    } else {
+      const searchUrl = config.bing.url
+        .replace("{q}", encodeURIComponent(query))
+        .replace("{form}", config.bing.form)
+        .replace("{cvid}", "");
+      console.log("Open new search at:", searchUrl);
+      await chrome.tabs.update(searchState.tabId, { url: searchUrl });
+    }
   } catch (error) {
     console.error("Error updating tab:", error);
     stopSearches();
@@ -870,6 +881,7 @@ async function startSearches(type, settings) {
     searchStartTime: Date.now(),
     nextSearchTime: null,
     endless: settings.endless === true,
+    searchMethod: settings.searchMethod === "searchBox" ? "searchBox" : "url",
     visitResults: settings.visitResults === true,
     pendingResultVisit: false,
     resultVisitScheduled: false,

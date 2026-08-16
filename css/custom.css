@@ -700,6 +700,65 @@ body.dark-mode .setting-row {
     margin: var(--settings-space-0);
 }
 
+.settings-toggle-card .search-method-row {
+    grid-template-columns: var(--settings-icon-size) minmax(0, 1fr);
+    grid-template-areas:
+        "icon content"
+        "control control";
+    row-gap: var(--settings-space-2) !important;
+}
+
+.settings-toggle-card .search-method-row .setting-control {
+    grid-area: control;
+    width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+}
+
+.settings-toggle-card .search-method-row .settings-segmented {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--settings-input-radius);
+    background: var(--surface-inset);
+    overflow: hidden;
+}
+
+.settings-toggle-card .search-method-row .settings-segment {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.settings-toggle-card .search-method-row .settings-segment + .settings-segment {
+    border-left: 1px solid var(--border);
+}
+
+.settings-toggle-card .search-method-row .settings-segment.active {
+    background: var(--accent);
+    color: var(--accent-contrast-text);
+}
+
+body.dark-mode .settings-toggle-card .search-method-row .settings-segment.active {
+    color: #ffffff;
+}
+
+.settings-toggle-card .search-method-row .settings-segment:focus-visible {
+    position: relative;
+    z-index: 1;
+    box-shadow: inset 0 0 0 2px var(--accent) !important;
+}
+
 .settings-query-card .setting-row {
     display: grid !important;
     grid-template-columns: var(--settings-icon-size) minmax(0, 1fr);

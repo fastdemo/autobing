@@ -2,9 +2,9 @@ import config from "./config.js";
 
 chrome.runtime.connect({ name: "popup" });
 
-function settingsRow({ icon, id, title, description, control }) {
+function settingsRow({ icon, id, title, description, control, className = "" }) {
   return `
-    <div class="setting-row">
+    <div class="setting-row ${className}">
       <div class="tile-icon"><i class="fa-solid ${icon}"></i></div>
       <div class="content-col">
         <label class="settings-row-title" for="${id}">${title}</label>
@@ -20,6 +20,12 @@ function settingsCard(rows, className = "") {
 
 function toggleControl(id, label) {
   return `<button type="button" class="eco-toggle" id="${id}" role="switch" aria-checked="false" aria-label="Toggle ${label}"><span class="eco-thumb"></span></button>`;
+}
+
+function segmentedControl(id, options, label) {
+  return `<div class="settings-segmented" id="${id}" role="radiogroup" aria-label="${label}">${options
+    .map(({ value, label }, index) => `<button type="button" class="settings-segment${index === 0 ? " active" : ""}" data-value="${value}" role="radio" aria-checked="${index === 0}" tabindex="${index === 0 ? "0" : "-1"}">${label}</button>`)
+    .join("")}</div>`;
 }
 
 function inputControl(id, placeholder) {
@@ -52,6 +58,17 @@ function renderSettingsView() {
         description: "Opens one result after every five searches.",
         control: toggleControl("visit-results-toggle", "Visit Results"),
       }),
+      settingsRow({
+        icon: "fa-magnifying-glass",
+        id: "searchMethodSelect",
+        title: "Search Method",
+        description: "Choose whether searches use the URL or Bing's search box.",
+        className: "search-method-row",
+        control: segmentedControl("searchMethodSelect", [
+          { value: "url", label: "URL" },
+          { value: "searchBox", label: "Search Box" },
+        ], "Search Method"),
+      }),
     ], "settings-toggle-card")}
 
     <div class="settings-section-label">Search Queries</div>
@@ -73,6 +90,7 @@ let isRunning = false;
 let endlessMode = false;
 let visitResultsEnabled = false;
 let brandingEnabled = true;
+let searchMethod = "url";
 let lastNumericValue = null;
 let startTime = 0;
 let timerInterval = null;
@@ -190,6 +208,39 @@ $("#branding-toggle").on("click", () => {
   const enabled = !$("#branding-toggle").hasClass("active");
   setBrandingUI(enabled);
   chrome.storage.local.set({ brandingEnabled: enabled });
+});
+
+function setSearchMethodUI(value) {
+  searchMethod = value === "searchBox" ? "searchBox" : "url";
+  const control = $("#searchMethodSelect");
+  control.find(".settings-segment").each(function () {
+    const active = $(this).data("value") === searchMethod;
+    $(this)
+      .toggleClass("active", active)
+      .attr("aria-checked", String(active))
+      .attr("tabindex", active ? "0" : "-1");
+  });
+}
+
+$("#searchMethodSelect").on("click", ".settings-segment", function () {
+  setSearchMethodUI($(this).data("value"));
+  chrome.storage.local.set({ searchMethod });
+});
+
+$("#searchMethodSelect").on("keydown", ".settings-segment", function (event) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const segments = $("#searchMethodSelect .settings-segment").toArray();
+  const currentIndex = segments.indexOf(this);
+  const nextIndex = event.key === "Home"
+    ? 0
+    : event.key === "End"
+      ? segments.length - 1
+      : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + segments.length) % segments.length;
+  const next = $(segments[nextIndex]);
+  setSearchMethodUI(next.data("value"));
+  chrome.storage.local.set({ searchMethod });
+  next.trigger("focus");
 });
 
 function setBrandingUI(enabled) {
@@ -536,6 +587,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   await chrome.storage.local.remove("ramSaverEnabled");
   await chrome.storage.local.remove("visitResultsEnabled");
   await chrome.storage.local.remove("brandingEnabled");
+  await chrome.storage.local.remove("searchMethod");
 
   // Rebuild the combination pool and reset its index in the background
   chrome.runtime.sendMessage({ type: "resetPool" }, (response) => {
@@ -561,6 +613,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   applyDarkMode(false);
   setRamSaverUI(false);
   setBrandingUI(true);
+  setSearchMethodUI("url");
 
   updateComboStats();
   flashResetFeedback();
@@ -634,6 +687,7 @@ async function startSearches(searchType) {
     millisecondsMax: parseInt(config.searches.millisecondsMax),
     endless: endless,
     visitResults: visitResultsEnabled,
+    searchMethod,
   };
 
   await chrome.storage.local.set({ startTime: Date.now() });
@@ -687,6 +741,7 @@ async function loadPreferences() {
     "ramSaverEnabled",
     "visitResultsEnabled",
     "brandingEnabled",
+    "searchMethod",
   ]);
 
   config.searches.desktop =
@@ -711,6 +766,8 @@ async function loadPreferences() {
   setRamSaverUI(result.ramSaverEnabled === true);
   setVisitResultsUI(result.visitResultsEnabled === true);
   setBrandingUI(result.brandingEnabled !== false);
+  searchMethod = result.searchMethod === "searchBox" ? "searchBox" : "url";
+  setSearchMethodUI(searchMethod);
 
   applyDarkMode(result.darkMode === true);
 }
