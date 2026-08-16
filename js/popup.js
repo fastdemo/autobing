@@ -32,11 +32,18 @@ function renderSettingsView() {
     <div class="settings-section-label">General</div>
     ${settingsCard([
       settingsRow({
-        icon: "fa-leaf",
+       icon: "fa-leaf",
         id: "eco-toggle",
         title: "Eco Mode",
         description: "Stops loading search page DOM to save RAM and power.",
-        control: toggleControl("eco-toggle", "Eco Mode"),
+       control: toggleControl("eco-toggle", "Eco Mode"),
+      }),
+      settingsRow({
+        icon: "fa-tag",
+        id: "branding-toggle",
+        title: "Tab Indicators",
+        description: "Changes active tabs into Autobing's icon and name.",
+        control: toggleControl("branding-toggle", "Tab Indicators"),
       }),
       settingsRow({
         icon: "fa-arrow-up-right-from-square",
@@ -65,6 +72,7 @@ renderSettingsView();
 let isRunning = false;
 let endlessMode = false;
 let visitResultsEnabled = false;
+let brandingEnabled = true;
 let lastNumericValue = null;
 let startTime = 0;
 let timerInterval = null;
@@ -176,6 +184,20 @@ $(config.domElements.ramSaverToggle).on("click", () => {
   setRamSaverUI(enabled);
   chrome.storage.local.set({ ramSaverEnabled: enabled });
 });
+
+// Add Autobing branding to pages belonging to an automated run.
+$("#branding-toggle").on("click", () => {
+  const enabled = !$("#branding-toggle").hasClass("active");
+  setBrandingUI(enabled);
+  chrome.storage.local.set({ brandingEnabled: enabled });
+});
+
+function setBrandingUI(enabled) {
+  brandingEnabled = enabled;
+  $("#branding-toggle")
+    .toggleClass("active", enabled)
+    .attr("aria-checked", String(enabled));
+}
 
 function setRamSaverUI(enabled) {
   $(config.domElements.ramSaverToggle)
@@ -513,6 +535,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   await chrome.storage.local.remove("darkMode");
   await chrome.storage.local.remove("ramSaverEnabled");
   await chrome.storage.local.remove("visitResultsEnabled");
+  await chrome.storage.local.remove("brandingEnabled");
 
   // Rebuild the combination pool and reset its index in the background
   chrome.runtime.sendMessage({ type: "resetPool" }, (response) => {
@@ -537,6 +560,7 @@ $(config.domElements.settingsReset).on("click", async () => {
   );
   applyDarkMode(false);
   setRamSaverUI(false);
+  setBrandingUI(true);
 
   updateComboStats();
   flashResetFeedback();
@@ -662,6 +686,7 @@ async function loadPreferences() {
     "endlessMode",
     "ramSaverEnabled",
     "visitResultsEnabled",
+    "brandingEnabled",
   ]);
 
   config.searches.desktop =
@@ -685,6 +710,7 @@ async function loadPreferences() {
 
   setRamSaverUI(result.ramSaverEnabled === true);
   setVisitResultsUI(result.visitResultsEnabled === true);
+  setBrandingUI(result.brandingEnabled !== false);
 
   applyDarkMode(result.darkMode === true);
 }

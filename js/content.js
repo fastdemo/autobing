@@ -7,6 +7,8 @@
 
 const STYLE_ID = "autobing-ram-saver-style";
 const FAVICON_ID = "autobing-ram-saver-favicon";
+const PAGE_BRANDING_STYLE_ID = "autobing-page-branding-style";
+const PAGE_BRANDING_CLASS = "autobing-page-branding";
 const AUTOBING_TITLE_PREFIX = "Autobing / ";
 const EXTENSION_FAVICON_PATH = "img/icon128.png";
 const RAM_SAVER_CSS =
@@ -17,6 +19,7 @@ let originalFavicons = [];
 let titleObserver = null;
 let originalPageTitle = null;
 let settingTitle = false;
+let pageBrandingObserver = null;
 
 function injectEcoModeStyle() {
   if (!document.getElementById(STYLE_ID)) {
@@ -34,14 +37,10 @@ function removeEcoModeStyle() {
 
 function injectRamSaver() {
   injectEcoModeStyle();
-  injectExtensionFavicon();
-  injectExtensionTitle();
 }
 
 function removeRamSaver() {
   removeEcoModeStyle();
-  removeExtensionFavicon();
-  removeExtensionTitle();
 }
 
 function injectExtensionTitle() {
@@ -153,6 +152,75 @@ function removeExtensionFavicon() {
   originalFavicons = [];
 }
 
+function injectPageBranding() {
+  const head = document.head;
+  if (!head) {
+    document.addEventListener("DOMContentLoaded", injectPageBranding, { once: true });
+    return;
+  }
+
+  let style = document.getElementById(PAGE_BRANDING_STYLE_ID);
+  if (!style) {
+    style = document.createElement("style");
+    style.id = PAGE_BRANDING_STYLE_ID;
+    style.textContent = `
+      .${PAGE_BRANDING_CLASS} {
+        background-image: var(--autobing-page-logo) !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-size: contain !important;
+      }
+      .${PAGE_BRANDING_CLASS} > * {
+        opacity: 0 !important;
+        visibility: hidden !important;
+      }
+    `;
+    head.appendChild(style);
+  }
+
+  const logo = document.querySelector(
+    "#b_logo, a[aria-label='Bing'], header a[href*='bing']",
+  );
+  if (logo) {
+    logo.classList.add(PAGE_BRANDING_CLASS);
+    logo.style.setProperty(
+      "--autobing-page-logo",
+      `url("${chrome.runtime.getURL(`${EXTENSION_FAVICON_PATH}?v=1`)}")`,
+    );
+  }
+
+  if (!pageBrandingObserver) {
+    pageBrandingObserver = new MutationObserver(() => {
+      const currentLogo = document.querySelector(
+        "#b_logo, a[aria-label='Bing'], header a[href*='bing']",
+      );
+      if (currentLogo && !currentLogo.classList.contains(PAGE_BRANDING_CLASS)) {
+        currentLogo.classList.add(PAGE_BRANDING_CLASS);
+        currentLogo.style.setProperty(
+          "--autobing-page-logo",
+          `url("${chrome.runtime.getURL(`${EXTENSION_FAVICON_PATH}?v=1`)}")`,
+        );
+      }
+    });
+    pageBrandingObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
+}
+
+function removePageBranding() {
+  if (pageBrandingObserver) {
+    pageBrandingObserver.disconnect();
+    pageBrandingObserver = null;
+  }
+  document.querySelectorAll(`.${PAGE_BRANDING_CLASS}`).forEach((logo) => {
+    logo.classList.remove(PAGE_BRANDING_CLASS);
+    logo.style.removeProperty("--autobing-page-logo");
+  });
+  document.getElementById(PAGE_BRANDING_STYLE_ID)?.remove();
+}
+
 function waitForTopResults(timeoutMs = 15000) {
   const getResults = () => {
     const selectors = [
@@ -203,8 +271,13 @@ async function visitRandomSearchResult() {
     const results = await waitForTopResults();
     if (!results.length) return { clicked: false };
     const result = results[Math.floor(Math.random() * results.length)];
-    result.click();
-    return { clicked: true };
+    const response = await new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: "openVisitResult", url: result.href },
+        resolve,
+      );
+    });
+    return { clicked: response?.success === true };
   } finally {
     if (ramSaverStyle) ramSaverStyle.textContent = savedStyleText;
   }
@@ -219,9 +292,11 @@ async function syncFromStorage() {
   if (state.branded === true) {
     injectExtensionFavicon();
     injectExtensionTitle();
+    injectPageBranding();
   } else {
     removeExtensionFavicon();
     removeExtensionTitle();
+    removePageBranding();
   }
   if (state.eco === true) injectEcoModeStyle();
   else removeEcoModeStyle();
@@ -234,7 +309,7 @@ syncFromStorage();
 // state rather than applying the global search state to every tab.
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
-  if (changes.ramSaverEnabled || changes.searchState) {
+  if (changes.ramSaverEnabled || changes.brandingEnabled || changes.searchState) {
     syncFromStorage();
   }
 });
@@ -247,8 +322,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message?.type === "ramSaverOff") {
     removeRamSaver();
   } else if (message?.type === "visitTabOn") {
-    injectExtensionFavicon();
-    injectExtensionTitle();
+    if (message.branding === true) {
+      injectExtensionFavicon();
+      injectExtensionTitle();
+      injectPageBranding();
+    } else {
+      removeExtensionFavicon();
+      removeExtensionTitle();
+      removePageBranding();
+    }
     if (message.ecoMode === true) injectEcoModeStyle();
     else removeEcoModeStyle();
   } else if (message?.type === "visitTabOff") {

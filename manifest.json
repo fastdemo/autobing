@@ -1,13 +1,13 @@
 {
   "name": "Autobing",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Automating your Bing searches so you don't have to! (@fastdemo)",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
     "default_title": "Search Automator"
   },
-  "permissions": ["debugger", "tabs", "alarms", "storage"],
+  "permissions": ["debugger", "tabs", "alarms", "storage", "downloads"],
   "host_permissions": ["<all_urls>"],
   "icons": {
     "16": "img/icon16.png",

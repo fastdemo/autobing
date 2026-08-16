@@ -103,6 +103,48 @@ const WORD_BANK_STORAGE_KEYS = ["moodDescriptors", "categories", "extraDetails"]
 
 // RAM Saver Mode - whether heavy Bing DOM should be hidden during batches
 let ramSaverEnabled = false;
+let brandingEnabled = true;
+
+const AUTOBING_BACKGROUND_URLS = new Set([
+  "https://github.com/fastdemo",
+]);
+const UNSAFE_DOWNLOAD_EXTENSIONS = /\.(?:7z|apk|bin|crx|dmg|docx?|exe|gz|iso|jar|msi|pkg|rar|tar|xlsx?|zip)(?:$|[?#])/i;
+
+function isSafeVisitUrl(value) {
+  if (typeof value !== "string" || value.length > 2048) return false;
+  try {
+    const url = new URL(value);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      url.hostname.length > 0 &&
+      !url.username &&
+      !url.password &&
+      !UNSAFE_DOWNLOAD_EXTENSIONS.test(url.pathname + url.search)
+    );
+  } catch (error) {
+    return false;
+  }
+}
+
+function keepAutobingTabQuiet(tab) {
+  if (!tab?.id || !AUTOBING_BACKGROUND_URLS.has(tab.pendingUrl || tab.url)) {
+    return;
+  }
+  chrome.tabs.update(tab.id, { active: false, muted: true }).catch(() => {});
+}
+
+chrome.tabs.onCreated.addListener(keepAutobingTabQuiet);
+
+// Autobing does not initiate downloads. Cancel any download attributed to the
+// extension so a malformed or redirected automation URL cannot save a file.
+chrome.downloads.onCreated.addListener((item) => {
+  const isVisitTab =
+    item.tabId === searchState.visitTabId ||
+    (searchState.visitTabIds || []).includes(item.tabId);
+  if (item.byExtensionId === chrome.runtime.id || isVisitTab) {
+    chrome.downloads.cancel(item.id).catch(() => {});
+  }
+});
 
 // Load user-customized word banks from chrome.storage.local
 async function loadWordBanks() {
@@ -276,11 +318,13 @@ async function loadState() {
   const result = await chrome.storage.local.get([
     "searchState",
     "ramSaverEnabled",
+    "brandingEnabled",
   ]);
   if (result.searchState) {
     searchState = result.searchState;
   }
   ramSaverEnabled = result.ramSaverEnabled === true;
+  brandingEnabled = result.brandingEnabled !== false;
 }
 
 // Helper functions
@@ -673,7 +717,10 @@ async function completeSearches() {
   closeVisitTab();
 
   // Open GitHub profile once the full run finishes
-  chrome.tabs.create({ url: "https://github.com/fastdemo" });
+  chrome.tabs.create({
+    url: "https://github.com/fastdemo",
+    active: false,
+  }).then(keepAutobingTabQuiet).catch(() => {});
 
   // Reset state
   searchState = {
@@ -777,11 +824,13 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 
   searchState.visitTabId = tab.id;
   searchState.visitTabIds = [...new Set([...(searchState.visitTabIds || []), tab.id])];
+  chrome.tabs.update(tab.id, { active: false, muted: true }).catch(() => {});
   await saveState();
   chrome.tabs
     .sendMessage(tab.id, {
-      type: "visitTabOn",
-      ecoMode: ramSaverEnabled === true,
+        type: "visitTabOn",
+        ecoMode: ramSaverEnabled === true,
+        branding: brandingEnabled === true,
     })
     .catch(() => {});
 });
@@ -910,6 +959,34 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 // Message listener
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "openVisitResult") {
+    const sourceTab = sender.tab;
+    if (
+      !sourceTab?.id ||
+      !searchState.isRunning ||
+      !searchState.pendingResultVisit ||
+      searchState.tabId !== sourceTab.id ||
+      !isSafeVisitUrl(message.url)
+    ) {
+      sendResponse({ success: false });
+      return false;
+    }
+
+    chrome.tabs.create({
+      windowId: sourceTab.windowId,
+      url: message.url,
+      active: false,
+      openerTabId: sourceTab.id,
+    }).then((tab) => {
+      chrome.tabs.update(tab.id, { active: false, muted: true })
+        .then(() => sendResponse({ success: true }))
+        .catch(() => sendResponse({ success: true }));
+    }).catch(() => {
+      sendResponse({ success: false });
+    });
+    return true;
+  }
+
   if (message.type === "searchPageReady") {
     armResultVisit(sender.tab?.id).then((scheduled) => {
       sendResponse({ success: true, scheduled });
@@ -963,7 +1040,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         (searchState.visitTabIds || []).includes(tabId);
       sendResponse({
         active: ramSaverEnabled === true && searchState.isRunning && isRunTab,
-        branded: searchState.isRunning && (isRunTab || isVisitTab),
+        branded:
+          brandingEnabled === true &&
+          searchState.isRunning &&
+          (isRunTab || isVisitTab),
         eco: ramSaverEnabled === true && searchState.isRunning && (isRunTab || isVisitTab),
       });
     });
@@ -998,6 +1078,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
         })
         .catch(() => {});
     }
+  }
+  if (changes.brandingEnabled) {
+    brandingEnabled = changes.brandingEnabled.newValue !== false;
   }
 });
 
