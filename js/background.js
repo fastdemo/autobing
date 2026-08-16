@@ -301,6 +301,7 @@ let searchState = {
   nextSearchTime: null,
   endless: false,
   searchMethod: "searchBox",
+  searchBoxInitialNavigationPending: true,
   visitResults: false,
   pendingResultVisit: false,
   resultVisitScheduled: false,
@@ -330,6 +331,8 @@ async function loadState() {
     searchState = result.searchState;
     searchState.searchMethod =
       result.searchState.searchMethod === "url" ? "url" : "searchBox";
+    searchState.searchBoxInitialNavigationPending =
+      result.searchState.searchBoxInitialNavigationPending !== false;
   }
   ramSaverEnabled = result.ramSaverEnabled === true;
   brandingEnabled = result.brandingEnabled !== false;
@@ -602,7 +605,10 @@ async function performSingleSearch() {
   await persistQueryPool();
 
   try {
-    if (searchState.searchMethod === "searchBox") {
+    const useSearchBox =
+      searchState.searchMethod === "searchBox" &&
+      searchState.searchBoxInitialNavigationPending !== true;
+    if (useSearchBox) {
       const result = await chrome.tabs.sendMessage(searchState.tabId, {
         type: "searchByBox",
         query,
@@ -617,6 +623,9 @@ async function performSingleSearch() {
         .replace("{cvid}", "");
       console.log("Open new search at:", searchUrl);
       await chrome.tabs.update(searchState.tabId, { url: searchUrl });
+      if (searchState.searchMethod === "searchBox") {
+        searchState.searchBoxInitialNavigationPending = false;
+      }
     }
   } catch (error) {
     console.error("Error updating tab:", error);
@@ -889,6 +898,8 @@ async function startSearches(type, settings) {
     nextSearchTime: null,
     endless: settings.endless === true,
     searchMethod: settings.searchMethod === "searchBox" ? "searchBox" : "url",
+    searchBoxInitialNavigationPending:
+      settings.searchMethod === "searchBox",
     visitResults: settings.visitResults === true,
     pendingResultVisit: false,
     resultVisitScheduled: false,

@@ -584,8 +584,10 @@ $(config.domElements.settingsReset).on("click", async () => {
   await chrome.storage.local.remove("visitResultsEnabled");
   await chrome.storage.local.remove("brandingEnabled");
   await chrome.storage.local.remove("searchMethod");
+  await chrome.storage.local.remove("endlessMode");
 
   // Refresh the UI immediately
+  setEndlessUI(false);
   await loadWordBankFields();
   $(config.domElements.totDesktopSearchesForm).val(
     DEFAULT_SEARCH_CONFIG.desktop,
