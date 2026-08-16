@@ -377,8 +377,11 @@ async function scheduleResultVisit() {
 }
 
 async function finishResultVisit() {
-  if (!searchState.isRunning) return;
-  closeVisitTab();
+  if (!searchState.isRunning) {
+    await closeVisitTab();
+    return;
+  }
+  await closeVisitTab();
   searchState.pendingResultVisit = false;
   searchState.resultVisitScheduled = false;
   searchState.visitTabId = null;
@@ -386,13 +389,24 @@ async function finishResultVisit() {
   await scheduleNextSearch();
 }
 
-function closeVisitTab() {
+async function closeVisitTab() {
   const tabIds = new Set(searchState.visitTabIds || []);
   if (searchState.visitTabId) tabIds.add(searchState.visitTabId);
-  tabIds.forEach((tabId) => chrome.tabs.remove(tabId).catch(() => {}));
+  await Promise.all(
+    [...tabIds].map((tabId) => chrome.tabs.remove(tabId).catch(() => {})),
+  );
   searchState.visitTabId = null;
   searchState.visitTabIds = [];
   searchState.visitCloseScheduled = false;
+}
+
+async function scheduleVisitTabClose() {
+  searchState.visitCloseScheduled = true;
+  await saveState();
+  const delaySeconds = 5 + Math.floor(Math.random() * 6);
+  await chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
+    delayInMinutes: delaySeconds / 60,
+  });
 }
 
 async function armResultVisit(tabId) {
@@ -741,7 +755,7 @@ async function completeSearches() {
   if (searchState.tabId) {
     chrome.tabs.sendMessage(searchState.tabId, { type: "ramSaverOff" }).catch(() => {});
   }
-  closeVisitTab();
+  await closeVisitTab();
 
   // Open GitHub profile once the full run finishes
   chrome.tabs.create({
@@ -789,7 +803,7 @@ async function stopSearches() {
   if (searchState.tabId) {
     chrome.tabs.sendMessage(searchState.tabId, { type: "ramSaverOff" }).catch(() => {});
   }
-  closeVisitTab();
+  await closeVisitTab();
 
   // Try to disable debugger if active
   if (
@@ -940,18 +954,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       chrome.tabs
         .sendMessage(searchState.tabId, { type: "visitSearchResult" })
         .then(async () => {
-          searchState.visitCloseScheduled = true;
-          await saveState();
-          chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
-            delayInMinutes: 10 / 60,
-          });
+          await scheduleVisitTabClose();
         })
         .catch(async () => {
-          searchState.visitCloseScheduled = true;
-          await saveState();
-          chrome.alarms.create(VISIT_CLOSE_ALARM_NAME, {
-            delayInMinutes: 10 / 60,
-          });
+          await scheduleVisitTabClose();
         });
     }
     return;
