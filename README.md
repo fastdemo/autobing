@@ -52,7 +52,8 @@ Not affiliated with Microsoft or the Microsoft Rewards program whatsoever. Use i
 
 ## Credits
 
-- **Iago** - a Japanese learning app. Their mascot art style is the inspiration for Autobing's mascot, Shion Yorigami *(aka Poverty God, aka the kind of people who would use this extension lol)* from Touhou Project!
+- **Iago** - A Japanese learning app. Their art style is the inspiration for Autobing's mascot.
+- **Touhou Project** - The character from the anime Autobing's mascot was based from, Shion Yorigami! *(aka Poverty God, aka the kind of people who would use this extension lol)*
 
 This is a completely open-source project and I have no intentions of profiting from this. If you're uncomfortable with any of the borrowed assets, feel free to reach out and I'll take it down!
 
