@@ -86,6 +86,14 @@ function renderSettingsView() {
 
 renderSettingsView();
 
+$("#mascotLink").on("click", (event) => {
+  event.preventDefault();
+  const sound = document.getElementById("mascotSound");
+  if (!sound) return;
+  sound.currentTime = 0;
+  sound.play().catch(() => {});
+});
+
 let isRunning = false;
 let endlessMode = false;
 let visitResultsEnabled = false;
