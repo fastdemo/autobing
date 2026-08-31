@@ -48,7 +48,7 @@ MIT. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Not affiliated with Microsoft or the Microsoft Rewards program whatsoever. Use it responsibly and in line with Microsoft's terms of service. At your own risk, of course.
+Not affiliated with Microsoft or the Microsoft Rewards program whatsoever. Use it responsibly and aligned with Microsoft's ToS. At your own risk, of course.
 
 ## Credits
 
