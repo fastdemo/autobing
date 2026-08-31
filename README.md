@@ -7,7 +7,7 @@ Automates Bing searches with a lightweight Chromium extension!
 
 Autobing generates random Bing queries, runs them in an active tab, and keeps the session visible with a live progress and metric UI.
 
-## Image
+## Images
 
 ![Autobing product thumbnail](AutobingThumb.png)
 
