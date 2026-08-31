@@ -1,11 +1,11 @@
 ![Autobing icon](img/icon128.png)
 # Autobing
 
-Automate Bing search sessions from a lightweight Chrome popup.
+Automates Bing searches with a lightweight Chromium extension!
 
 ## Highlights
 
-Autobing builds varied Bing queries, runs them in the active tab, and keeps the session visible with live progress and statistics.
+Autobing generates random Bing queries, runs them in an active tab, and keeps the session visible with a live progress and metric UI.
 
 ## Image
 
@@ -13,12 +13,11 @@ Autobing builds varied Bing queries, runs them in the active tab, and keeps the 
 
 ## Features
 
-- **Automated search sessions**: Run a fixed batch or use Endless Mode for continuous searching.
-- **Natural query generation**: Combines descriptors, categories, and extra details into varied queries without repeating combinations during a pool cycle.
-- **Configurable timing**: Set minimum and maximum delays between searches in milliseconds.
-- **Visit Results**: Optionally opens one random result from the top five after every five searches, keeps the visit tab branded, and closes it after a short delay.
-- **Eco Mode**: Temporarily hides heavy Bing result-page content while a session runs to reduce page overhead. It is scoped to the active search tab.
-- **Editable word banks**: Customize descriptors, categories, and extra details from Settings with saved preferences.
+- **Automated searches**: Run a chosen amount of searches with timing inbetween.
+- **Adjustable timing**: Set minimum and maximum delays between searches in milliseconds.
+- **Natural query generation**: Creates completely unique search queries by combining customizable descriptors, categories, and extra details without repeating combinations in a large pool of queries.
+- **Visit search results**: Randomly opens a search result every few searches, to emulate human behavior.
+- **Eco Mode**: Allows you to hide Bing content when the extension is running in the background to save your computer's precious resources!
 
 ## Install
 
@@ -36,19 +35,10 @@ Autobing builds varied Bing queries, runs them in the active tab, and keeps the 
 ## Usage
 
 1. Click the Autobing icon in the toolbar.
-2. Choose a search mode and set the search count, or enable Endless Mode.
+2. Adjust the amount of search queries that you want to automate.
 3. Set the minimum and maximum delay in milliseconds.
-4. Optionally enable Eco Mode or Visit Results in Settings.
-5. Click Start and keep the target Bing tab open while the session runs.
-6. Use the gear icon to edit word banks and view session statistics.
-
-## Settings
-
-Settings are grouped into three areas:
-
-- **General**: Eco Mode and Visit Results.
-- **Search Queries**: Descriptors, Categories, and Extras.
-- **Statistics**: Current searches, available combinations, and pool usage.
+4. Click Start and keep that Bing tab open while the session runs.
+5. Enable or disable additional features in the Settings tab, while also keeping an eye on the metrics.
 
 Preferences are stored locally by the extension and can be restored from the Settings view.
 
@@ -58,12 +48,12 @@ MIT. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Not affiliated with Microsoft or the Microsoft Rewards program. Use it responsibly and in line with Microsoft's terms of service.
+Not affiliated with Microsoft or the Microsoft Rewards program whatsoever. Use it responsibly and in line with Microsoft's terms of service. At your own risk, of course.
 
 ## Credits
 
-- **Iago** - a Japanese learning app. The mascot's art style references Shion Yorigami (from Touhou Project).
+- **Iago** - a Japanese learning app. Their mascot art style is the inspiration for Autobing's mascot, Shion Yorigami from Touhou Project!
 
-This is an open-source project with no commercial intent. If you are uncomfortable with any asset usage, reach out and it will be taken down.
+This is a completely open-source project and I have no intentions of profiting from this. If you're uncomfortable with any of the borrowed assets, feel free to reach out and I'll take it down!
 
 Made with love by **@fastdemo** <3
