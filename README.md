@@ -48,11 +48,11 @@ MIT. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Not affiliated with Microsoft or the Microsoft Rewards program whatsoever. Use it responsibly and aligned with Microsoft's ToS. At your own risk, of course.
+Not affiliated with Microsoft or the Microsoft Rewards program whatsoever. Use it responsibly and aligned with Microsoft's ToS *(at your own risk, of course).*
 
 ## Credits
 
-- **Iago** - a Japanese learning app. Their mascot art style is the inspiration for Autobing's mascot, Shion Yorigami *(aka Poverty God, aka why you would want to use this extension in the first place lol)* from Touhou Project!
+- **Iago** - a Japanese learning app. Their mascot art style is the inspiration for Autobing's mascot, Shion Yorigami *(aka Poverty God, aka the kind of people who would use this extension lol)* from Touhou Project!
 
 This is a completely open-source project and I have no intentions of profiting from this. If you're uncomfortable with any of the borrowed assets, feel free to reach out and I'll take it down!
 
