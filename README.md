@@ -9,7 +9,7 @@ Autobing generates random Bing queries, runs them in an active tab, and keeps th
 
 ## Preview
 
-![Autobing product thumbnail](AutobingThumb.png)
+![Autobing product thumbnail](https://github.com/fastdemo/autobing/raw/refs/heads/main/AutobingThumb.png)
 
 ## Features
 
