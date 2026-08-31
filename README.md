@@ -44,7 +44,7 @@ Preferences are stored locally by the extension and can be restored from the Set
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
