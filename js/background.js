@@ -92,13 +92,41 @@ let wordBanks = {
   detail: EXTRA_DETAILS,
 };
 
-// Query pool state - persisted to chrome.storage.local
+// Query pool state - persisted to chrome.storage.local as a few bytes
+// (permutation parameters + position). The shuffled order is derived
+// arithmetically, so multi-megabyte arrays never touch storage.
 let queryPool = {
   fingerprint: "",
-  indices: [],
+  step: 0,
+  offset: 0,
+  total: 0,
+  indices: [], // legacy full-order pools only; drained, then migrated
   currentQueryIndex: 0,
 };
 let searchCount = 0;
+
+// Greatest common divisor (for full-cycle permutations)
+function gcd(a, b) {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  while (b) {
+    const remainder = a % b;
+    a = b;
+    b = remainder;
+  }
+  return a;
+}
+
+// Random step coprime to total: (offset + position * step) % total then
+// visits every combination exactly once per cycle.
+function randomCoprime(total) {
+  if (total <= 1) return 1;
+  let step = 1;
+  do {
+    step = 1 + Math.floor(Math.random() * (total - 1));
+  } while (gcd(step, total) !== 1);
+  return step;
+}
 
 const WORD_BANK_STORAGE_KEYS = ["moodDescriptors", "categories", "extraDetails"];
 
@@ -147,13 +175,15 @@ chrome.downloads.onCreated.addListener((item) => {
   }
 });
 
-// Load user-customized word banks from chrome.storage.local
+// Load user-customized word banks from chrome.storage.local. Single storage
+// read for everything this needs (pool, banks, counter).
 async function loadWordBanks() {
-  await loadQueryPool();
   const result = await chrome.storage.local.get([
+    "queryPool",
     ...WORD_BANK_STORAGE_KEYS,
     "searchCount",
   ]);
+  hydrateQueryPool(result.queryPool);
   searchCount = Number.isFinite(result.searchCount) ? result.searchCount : searchCount;
   wordBanks = {
     mood: normalizeWordBank(result.moodDescriptors, MOOD_DESCRIPTORS),
@@ -167,17 +197,43 @@ function normalizeWordBank(stored, fallback) {
   return Array.isArray(stored) && stored.length > 0 ? stored : fallback;
 }
 
-// Load the saved combination pool from chrome.storage.local
-async function loadQueryPool() {
-  const result = await chrome.storage.local.get("queryPool");
-  if (result.queryPool) {
-    queryPool = result.queryPool;
-  }
+// Hydrate the pool from a stored snapshot (compact or legacy form).
+function hydrateQueryPool(stored) {
+  if (!stored || typeof stored !== "object") return;
+  queryPool = {
+    fingerprint: typeof stored.fingerprint === "string" ? stored.fingerprint : "",
+    step: Number.isInteger(stored.step) ? stored.step : 0,
+    offset: Number.isInteger(stored.offset) ? stored.offset : 0,
+    total: Number.isInteger(stored.total) ? stored.total : 0,
+    indices: Array.isArray(stored.indices) ? stored.indices : [],
+    currentQueryIndex:
+      Number.isInteger(stored.currentQueryIndex) && stored.currentQueryIndex >= 0
+        ? stored.currentQueryIndex
+        : 0,
+  };
 }
 
-// Persist the combination pool and current index to chrome.storage.local
+// Load the saved combination pool from chrome.storage.local. Accepts the
+// compact step/offset form and legacy full-order snapshots.
+async function loadQueryPool() {
+  const result = await chrome.storage.local.get("queryPool");
+  hydrateQueryPool(result.queryPool);
+}
+
+// Persist the combination pool and current index to chrome.storage.local.
+// A seeded pool persists as ~4 small integers; legacy pools keep their order
+// only until their remaining indices are drained, then they are migrated.
 async function persistQueryPool() {
-  await chrome.storage.local.set({ queryPool: queryPool });
+  const snapshot = Number.isInteger(queryPool.step) && queryPool.step > 0
+    ? {
+        fingerprint: queryPool.fingerprint,
+        step: queryPool.step,
+        offset: queryPool.offset,
+        total: queryPool.total,
+        currentQueryIndex: queryPool.currentQueryIndex,
+      }
+    : { ...queryPool, indices: [...queryPool.indices] };
+  await chrome.storage.local.set({ queryPool: snapshot });
 }
 
 // Fingerprint of the exact word lists the current pool was built from
@@ -192,33 +248,34 @@ function poolTotal() {
   );
 }
 
-// Build a freshly shuffled index pool for the current word lists
+// Build a freshly shuffled index pool for the current word lists. Instead of
+// materializing ~poolTotal() shuffled entries (up to ~1M), store O(1)
+// permutation parameters and derive each index arithmetically.
 function rebuildPool() {
   const total = poolTotal();
-  const indices = new Array(total);
-  for (let i = 0; i < total; i++) {
-    indices[i] = i;
-  }
-  // Fisher-Yates shuffle
-  for (let i = total - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = indices[i];
-    indices[i] = indices[j];
-    indices[j] = tmp;
-  }
   queryPool = {
     fingerprint: poolFingerprint(),
-    indices: indices,
+    step: randomCoprime(total),
+    offset: Math.floor(Math.random() * Math.max(1, total)),
+    total: total,
+    indices: [],
     currentQueryIndex: 0,
   };
 }
 
 // Rebuild the pool whenever the word lists change, or when pool is missing
 async function ensurePoolFresh() {
+  const total = poolTotal();
+  const needsLegacyDrainCheck =
+    Array.isArray(queryPool.indices) && queryPool.indices.length > 0;
   if (
     queryPool.fingerprint !== poolFingerprint() ||
-    !Array.isArray(queryPool.indices) ||
-    queryPool.indices.length !== poolTotal()
+    !Number.isInteger(queryPool.step) ||
+    queryPool.step <= 0 ||
+    queryPool.total !== total ||
+    (!needsLegacyDrainCheck &&
+      (!Number.isInteger(queryPool.offset) ||
+        queryPool.currentQueryIndex >= total))
   ) {
     rebuildPool();
     await persistQueryPool();
@@ -235,22 +292,38 @@ function decodeCombination(index) {
   return `${wordBanks.mood[moodIndex]} ${wordBanks.category[categoryIndex]} ${wordBanks.detail[detailIndex]}`;
 }
 
-// Serve the next combination sequentially from the shuffled pool
+// Serve the next combination sequentially from the shuffled pool. Stored
+// legacy pools are drained first (keeping their exact order), then the pool
+// migrates to the arithmetic scheme; a fresh arithmetic pool covers every
+// combination exactly once per cycle with no repeats and no array.
 function nextUniqueQuery() {
-  if (!Array.isArray(queryPool.indices) || queryPool.indices.length === 0) {
+  if (
+    Array.isArray(queryPool.indices) &&
+    queryPool.indices.length > 0 &&
+    queryPool.currentQueryIndex < queryPool.indices.length
+  ) {
+    const index = queryPool.indices[queryPool.currentQueryIndex];
+    queryPool.currentQueryIndex++;
+    return decodeCombination(index);
+  }
+  if (Array.isArray(queryPool.indices) && queryPool.indices.length > 0) {
+    // Legacy order exhausted: migrate to the arithmetic pool instead of
+    // copying/mutating a ~1M-entry array.
     rebuildPool();
   }
-  if (queryPool.currentQueryIndex >= queryPool.indices.length) {
-    // Full cycle exhausted: reshuffle and start a fresh cycle
-    for (let i = queryPool.indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = queryPool.indices[i];
-      queryPool.indices[i] = queryPool.indices[j];
-      queryPool.indices[j] = tmp;
-    }
-    queryPool.currentQueryIndex = 0;
+  if (
+    !Number.isInteger(queryPool.step) ||
+    queryPool.step <= 0 ||
+    queryPool.total !== poolTotal()
+  ) {
+    rebuildPool();
+  } else if (queryPool.currentQueryIndex >= poolTotal()) {
+    // Full cycle exhausted: pick fresh permutation parameters
+    rebuildPool();
   }
-  const index = queryPool.indices[queryPool.currentQueryIndex];
+  const total = poolTotal();
+  const index =
+    (queryPool.offset + queryPool.currentQueryIndex * queryPool.step) % total;
   queryPool.currentQueryIndex++;
   return decodeCombination(index);
 }
@@ -339,18 +412,10 @@ async function loadState() {
 }
 
 // Helper functions
-function pickRandom(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
 function randomDelay() {
-  return Math.floor(
-    Math.random() *
-      (parseInt(searchState.millisecondsMax) -
-        parseInt(searchState.millisecondsMin) +
-        1) +
-      parseInt(searchState.millisecondsMin),
-  );
+  const min = Math.max(0, parseInt(searchState.millisecondsMin) || 0);
+  const max = Math.max(min, parseInt(searchState.millisecondsMax) || min);
+  return min + Math.floor(Math.random() * (max - min + 1));
 }
 
 function validateSearchSettings(type, settings) {
@@ -471,27 +536,24 @@ function notifyPopup(message) {
 
 // Enable debugger
 async function enableDebugger(tabId) {
-  return new Promise((resolve, reject) => {
-    chrome.debugger.attach({ tabId }, "1.2", function () {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      console.log(`Debugger enabled for tab: ${tabId}`);
-      resolve(true);
-    });
-  });
+  await chrome.debugger.attach({ tabId }, "1.2");
+  console.log(`Debugger enabled for tab: ${tabId}`);
 }
 
 // Disable debugger
 async function disableDebugger(tabId) {
+  await chrome.debugger.detach({ tabId });
+  console.log(`Debugger disabled for tab: ${tabId}`);
+}
+
+// Run a debugger command, rejecting with the runtime error on failure
+async function sendDebuggerCommand(tabId, method, params = {}) {
   return new Promise((resolve, reject) => {
-    chrome.debugger.detach({ tabId }, function () {
+    chrome.debugger.sendCommand({ tabId: tabId }, method, params, function () {
       if (chrome.runtime.lastError) {
         reject(new Error(chrome.runtime.lastError.message));
         return;
       }
-      console.log(`Debugger disabled for tab: ${tabId}`);
       resolve(true);
     });
   });
@@ -499,165 +561,87 @@ async function disableDebugger(tabId) {
 
 // Activate mobile user agent
 async function activeMobileAgent(tabId) {
-  return new Promise((resolve, reject) => {
-    // First set the user agent override with full mobile hints
-    chrome.debugger.sendCommand(
-      {
-        tabId: tabId,
-      },
-      "Network.setUserAgentOverride",
-      {
-        userAgent: config.devices.phone.userAgent,
-        acceptLanguage: "en-US,en;q=0.9",
-        platform: "Linux armv8l",
-        userAgentMetadata: {
-          brands: [
-            { brand: "Google Chrome", version: "131" },
-            { brand: "Chromium", version: "131" },
-            { brand: "Not_A Brand", version: "24" },
-          ],
-          fullVersionList: [
-            { brand: "Google Chrome", version: "131.0.0.0" },
-            { brand: "Chromium", version: "131.0.0.0" },
-            { brand: "Not_A Brand", version: "24.0.0.0" },
-          ],
-          platform: "Android",
-          platformVersion: "13.0.0",
-          architecture: "",
-          model: "SM-S908B",
-          mobile: true,
-          bitness: "",
-          wow64: false,
-        },
-      },
-      function () {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        // Then set device metrics
-        chrome.debugger.sendCommand(
-          {
-            tabId: tabId,
-          },
-          "Emulation.setDeviceMetricsOverride",
-          {
-            width: config.devices.phone.width,
-            height: config.devices.phone.height,
-            deviceScaleFactor: config.devices.phone.deviceScaleFactor,
-            mobile: config.devices.phone.mobile,
-            screenWidth: config.devices.phone.width,
-            screenHeight: config.devices.phone.height,
-            positionX: 0,
-            positionY: 0,
-            screenOrientation: { type: "portraitPrimary", angle: 0 },
-          },
-          function () {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-              return;
-            }
-            // Enable touch emulation
-            chrome.debugger.sendCommand(
-              {
-                tabId: tabId,
-              },
-              "Emulation.setTouchEmulationEnabled",
-              {
-                enabled: true,
-                maxTouchPoints: 5,
-              },
-              function () {
-                if (chrome.runtime.lastError) {
-                  reject(new Error(chrome.runtime.lastError.message));
-                  return;
-                }
-                resolve(true);
-              },
-            );
-          },
-        );
-      },
-    );
+  // First set the user agent override with full mobile hints
+  await sendDebuggerCommand(tabId, "Network.setUserAgentOverride", {
+    userAgent: config.devices.phone.userAgent,
+    acceptLanguage: "en-US,en;q=0.9",
+    platform: "Linux armv8l",
+    userAgentMetadata: {
+      brands: [
+        { brand: "Google Chrome", version: "131" },
+        { brand: "Chromium", version: "131" },
+        { brand: "Not_A Brand", version: "24" },
+      ],
+      fullVersionList: [
+        { brand: "Google Chrome", version: "131.0.0.0" },
+        { brand: "Chromium", version: "131.0.0.0" },
+        { brand: "Not_A Brand", version: "24.0.0.0" },
+      ],
+      platform: "Android",
+      platformVersion: "13.0.0",
+      architecture: "",
+      model: "SM-S908B",
+      mobile: true,
+      bitness: "",
+      wow64: false,
+    },
+  });
+  // Then set device metrics
+  await sendDebuggerCommand(tabId, "Emulation.setDeviceMetricsOverride", {
+    width: config.devices.phone.width,
+    height: config.devices.phone.height,
+    deviceScaleFactor: config.devices.phone.deviceScaleFactor,
+    mobile: config.devices.phone.mobile,
+    screenWidth: config.devices.phone.width,
+    screenHeight: config.devices.phone.height,
+    positionX: 0,
+    positionY: 0,
+    screenOrientation: { type: "portraitPrimary", angle: 0 },
+  });
+  // Enable touch emulation
+  await sendDebuggerCommand(tabId, "Emulation.setTouchEmulationEnabled", {
+    enabled: true,
+    maxTouchPoints: 5,
   });
 }
 
 // Activate desktop user agent
 async function activeDesktopAgent(tabId) {
-  return new Promise((resolve, reject) => {
-    chrome.debugger.sendCommand(
-      {
-        tabId: tabId,
-      },
-      "Network.setUserAgentOverride",
-      {
-        userAgent: config.devices.desktop.userAgent,
-        acceptLanguage: "en-US,en;q=0.9",
-        platform: "Win32",
-        userAgentMetadata: {
-          brands: [
-            { brand: "Google Chrome", version: "131" },
-            { brand: "Chromium", version: "131" },
-            { brand: "Not_A Brand", version: "24" },
-          ],
-          fullVersionList: [
-            { brand: "Google Chrome", version: "131.0.0.0" },
-            { brand: "Chromium", version: "131.0.0.0" },
-            { brand: "Not_A Brand", version: "24.0.0.0" },
-          ],
-          platform: "Windows",
-          platformVersion: "15.0.0",
-          architecture: "x86",
-          model: "",
-          mobile: false,
-          bitness: "64",
-          wow64: false,
-        },
-      },
-      function () {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        chrome.debugger.sendCommand(
-          {
-            tabId: tabId,
-          },
-          "Emulation.setDeviceMetricsOverride",
-          {
-            width: config.devices.desktop.width,
-            height: config.devices.desktop.height,
-            deviceScaleFactor: config.devices.desktop.deviceScaleFactor,
-            mobile: config.devices.desktop.mobile,
-            screenWidth: config.devices.desktop.width,
-            screenHeight: config.devices.desktop.height,
-          },
-          function () {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-              return;
-            }
-            // Disable touch emulation
-            chrome.debugger.sendCommand(
-              {
-                tabId: tabId,
-              },
-              "Emulation.setTouchEmulationEnabled",
-              {
-                enabled: false,
-              },
-              function () {
-                if (chrome.runtime.lastError) {
-                  reject(new Error(chrome.runtime.lastError.message));
-                  return;
-                }
-                resolve(true);
-              },
-            );
-          },
-        );
-      },
-    );
+  await sendDebuggerCommand(tabId, "Network.setUserAgentOverride", {
+    userAgent: config.devices.desktop.userAgent,
+    acceptLanguage: "en-US,en;q=0.9",
+    platform: "Win32",
+    userAgentMetadata: {
+      brands: [
+        { brand: "Google Chrome", version: "131" },
+        { brand: "Chromium", version: "131" },
+        { brand: "Not_A Brand", version: "24" },
+      ],
+      fullVersionList: [
+        { brand: "Google Chrome", version: "131.0.0.0" },
+        { brand: "Chromium", version: "131.0.0.0" },
+        { brand: "Not_A Brand", version: "24.0.0.0" },
+      ],
+      platform: "Windows",
+      platformVersion: "15.0.0",
+      architecture: "x86",
+      model: "",
+      mobile: false,
+      bitness: "64",
+      wow64: false,
+    },
+  });
+  await sendDebuggerCommand(tabId, "Emulation.setDeviceMetricsOverride", {
+    width: config.devices.desktop.width,
+    height: config.devices.desktop.height,
+    deviceScaleFactor: config.devices.desktop.deviceScaleFactor,
+    mobile: config.devices.desktop.mobile,
+    screenWidth: config.devices.desktop.width,
+    screenHeight: config.devices.desktop.height,
+  });
+  // Disable touch emulation
+  await sendDebuggerCommand(tabId, "Emulation.setTouchEmulationEnabled", {
+    enabled: false,
   });
 }
 
@@ -718,11 +702,14 @@ async function performSingleSearchInternal() {
       await chrome.tabs.update(searchState.tabId, { url: searchUrl });
       if (searchState.searchMethod === "searchBox") {
         searchState.searchBoxInitialNavigationPending = false;
+        // Persist immediately: a service-worker restart before the next
+        // alarm would otherwise replay the bootstrap URL navigation.
+        await saveState();
       }
     }
   } catch (error) {
     console.error("Error updating tab:", error);
-    stopSearches();
+    await stopSearches();
     return;
   }
 
@@ -1213,7 +1200,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "resetPool") {
-    // Re-read word lists and rebuild a fresh shuffled pool from index 0
+    // Rebuild a fresh shuffled pool from position 0 (O(1) parameters)
     loadWordBanks().then(() => {
       rebuildPool();
       persistQueryPool().then(() => {
