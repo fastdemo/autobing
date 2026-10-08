@@ -798,7 +798,7 @@ function deactivateForms() {
   $(config.domElements.desktopButton)
     .find("i")
     .removeClass("fa-play")
-    .addClass("fa-stop");
+    .addClass("fa-pause");
   $(config.domElements.desktopButton).find("span").text("Stop Searches");
 }
 
@@ -810,7 +810,7 @@ function activateForms() {
   $(config.domElements.desktopButton).removeClass("btn-stop");
   $(config.domElements.desktopButton)
     .find("i")
-    .removeClass("fa-stop")
+    .removeClass("fa-pause")
     .addClass("fa-play");
   $(config.domElements.desktopButton).find("span").text("Start");
 }
