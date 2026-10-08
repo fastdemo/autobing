@@ -152,6 +152,15 @@ function removeExtensionFavicon() {
   originalFavicons = [];
 }
 
+function brandPageLogo(logo) {
+  if (!logo || logo.classList.contains(PAGE_BRANDING_CLASS)) return;
+  logo.classList.add(PAGE_BRANDING_CLASS);
+  logo.style.setProperty(
+    "--autobing-page-logo",
+    `url("${chrome.runtime.getURL(`${EXTENSION_FAVICON_PATH}?v=1`)}")`,
+  );
+}
+
 function injectPageBranding() {
   const head = document.head;
   if (!head) {
@@ -178,28 +187,36 @@ function injectPageBranding() {
     head.appendChild(style);
   }
 
+  // Already branded: release the document-wide observer so it stops
+  // running a full-document query on every DOM mutation for the rest
+  // of the page lifetime.
+  if (document.querySelector(`.${PAGE_BRANDING_CLASS}`)?.isConnected) {
+    if (pageBrandingObserver) {
+      pageBrandingObserver.disconnect();
+      pageBrandingObserver = null;
+    }
+    return;
+  }
+
   const logo = document.querySelector(
     "#b_logo, a[aria-label='Bing'], header a[href*='bing']",
   );
   if (logo) {
-    logo.classList.add(PAGE_BRANDING_CLASS);
-    logo.style.setProperty(
-      "--autobing-page-logo",
-      `url("${chrome.runtime.getURL(`${EXTENSION_FAVICON_PATH}?v=1`)}")`,
-    );
+    brandPageLogo(logo);
+    return;
   }
 
+  // Logo not rendered yet: observe only until it appears, then brand
+  // once and disconnect instead of watching the document forever.
   if (!pageBrandingObserver) {
     pageBrandingObserver = new MutationObserver(() => {
       const currentLogo = document.querySelector(
         "#b_logo, a[aria-label='Bing'], header a[href*='bing']",
       );
-      if (currentLogo && !currentLogo.classList.contains(PAGE_BRANDING_CLASS)) {
-        currentLogo.classList.add(PAGE_BRANDING_CLASS);
-        currentLogo.style.setProperty(
-          "--autobing-page-logo",
-          `url("${chrome.runtime.getURL(`${EXTENSION_FAVICON_PATH}?v=1`)}")`,
-        );
+      if (currentLogo) {
+        brandPageLogo(currentLogo);
+        pageBrandingObserver.disconnect();
+        pageBrandingObserver = null;
       }
     });
     pageBrandingObserver.observe(document.documentElement, {
@@ -222,22 +239,14 @@ function removePageBranding() {
 }
 
 function waitForTopResults(timeoutMs = 15000) {
-  const getResults = () => {
-    const selectors = [
-      "li.b_algo h2 a[href]",
-      "li.b_algo a[href]",
-      "#b_results li.b_algo a[href]",
-    ];
-    const seen = new Set();
-    return selectors
-      .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
-      .filter((link) => {
-        if (seen.has(link) || !link.href) return false;
-        seen.add(link);
-        return true;
-      })
+  // One combined selector: a single querySelectorAll pass instead of three
+  // overlapping scans plus manual dedup on every mutation batch.
+  const selector =
+    "li.b_algo h2 a[href], li.b_algo a[href], #b_results li.b_algo a[href]";
+  const getResults = () =>
+    Array.from(document.querySelectorAll(selector))
+      .filter((link, index, links) => link.href && links.indexOf(link) === index)
       .slice(0, 5);
-  };
 
   return new Promise((resolve) => {
     const initialResults = getResults();

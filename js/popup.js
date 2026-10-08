@@ -432,8 +432,12 @@ $(document).on("keydown", (event) => {
 
 function openSettings() {
   $(config.domElements.settingsView).addClass("open").attr("aria-hidden", "false");
+  // Always start at the top: scroll position persists between opens, and
+  // focusing a field (below) auto-scrolls it into view otherwise.
+  document.getElementById("settingsContent").scrollTop = 0;
   loadWordBankFields();
-  $(config.domElements.moodDescriptorsField).trigger("focus");
+  // preventScroll: focusing a field auto-scrolls it into view otherwise.
+  $(config.domElements.moodDescriptorsField)[0]?.focus({ preventScroll: true });
 }
 
 function closeSettings() {
