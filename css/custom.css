@@ -230,23 +230,23 @@ h2 {
 }
 
 .btn-action.btn-stop {
-    background-color: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-contrast-text);
+    background-color: #e5484d;
+    border-color: #e5484d;
+    color: #ffffff;
 }
 
 .btn-action.btn-stop:hover {
-    background-color: color-mix(in srgb, var(--accent) 88%, var(--bg));
-    border-color: color-mix(in srgb, var(--accent) 88%, var(--bg));
-    color: var(--accent-contrast-text);
+    background-color: #e5484d;
+    border-color: #e5484d;
+    color: #ffffff;
 }
 
 .btn-action.btn-stop:focus,
 .btn-action.btn-stop:focus-visible,
 .btn-action.btn-stop:active {
-    background-color: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-contrast-text);
+    background-color: #e5484d;
+    border-color: #e5484d;
+    color: #ffffff;
     box-shadow: none;
     outline: none;
 }
@@ -1135,17 +1135,17 @@ body.dark-mode .btn-action.btn-stop,
 body.dark-mode .btn-action.btn-stop:focus,
 body.dark-mode .btn-action.btn-stop:focus-visible,
 body.dark-mode .btn-action.btn-stop:active {
-    background-color: #ffffff;
-    border-color: #ffffff;
-    color: var(--accent-contrast-text);
+    background-color: #e5484d;
+    border-color: #e5484d;
+    color: #ffffff;
     box-shadow: none;
     outline: none;
 }
 
 body.dark-mode .btn-action.btn-stop:hover {
-    background-color: #ffffff;
-    border-color: #ffffff;
-    color: var(--accent-contrast-text);
+    background-color: #e5484d;
+    border-color: #e5484d;
+    color: #ffffff;
 }
 
 /* ========================================
